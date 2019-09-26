@@ -1,10 +1,15 @@
+/**
+ * 此文件是rollup
+ */
 const fs = require('fs')
 const path = require('path')
 const zlib = require('zlib')
 const rollup = require('rollup')
 const terser = require('terser')
 
+// 生成dist文件
 if (!fs.existsSync('dist')) {
+  // 如果dist路径不存在，新建dist文件夹
   fs.mkdirSync('dist')
 }
 

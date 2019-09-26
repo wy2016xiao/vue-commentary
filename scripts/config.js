@@ -1,7 +1,9 @@
 const path = require('path')
+
 const buble = require('rollup-plugin-buble')
 const alias = require('rollup-plugin-alias')
 const cjs = require('rollup-plugin-commonjs')
+// 引入变量替换插件
 const replace = require('rollup-plugin-replace')
 const node = require('rollup-plugin-node-resolve')
 const flow = require('rollup-plugin-flow-no-whitespace')
@@ -214,6 +216,13 @@ const builds = {
 }
 
 function genConfig (name) {
+  // example: {
+  //   weex: true,
+  //   entry: resolve('weex/entry-compiler.js'),
+  //   dest: resolve('packages/weex-template-compiler/build.js'),
+  //   format: 'cjs',
+  //   external: Object.keys(require('../packages/weex-template-compiler/package.json').dependencies)
+  // }
   const opts = builds[name]
   const config = {
     input: opts.entry,

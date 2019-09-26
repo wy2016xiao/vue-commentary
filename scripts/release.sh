@@ -1,6 +1,9 @@
 #!/bin/bash
+# 如果后续脚本中一个命令返回一个非0退出状态值(失败),就退出.
 set -e
 
+# -z 字符串的长度为零则为真
+# 如果有第一个参数
 if [[ -z $1 ]]; then
   echo "Enter new version: "
   read -r VERSION
@@ -12,7 +15,6 @@ read -p "Releasing $VERSION - are you sure? (y/n) " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
   echo "Releasing $VERSION ..."
-
   if [[ -z $SKIP_TESTS ]]; then
     npm run lint
     npm run flow

@@ -23,17 +23,22 @@ export function initGlobalAPI (Vue: GlobalAPI) {
   const configDef = {}
   configDef.get = () => config
   if (process.env.NODE_ENV !== 'production') {
+    // 如果不是生产环境
+    // 把config配置设置为静止设置，设置就提示警告
     configDef.set = () => {
       warn(
         'Do not replace the Vue.config object, set individual fields instead.'
       )
     }
   }
+  // 把设置项放在Vue实例上方便使用
   Object.defineProperty(Vue, 'config', configDef)
 
   // exposed util methods.
   // NOTE: these are not considered part of the public API - avoid relying on
   // them unless you are aware of the risk.
+  // 暴露一些工具函数
+  // 这些不被认为是公共API的一部分，避免去依赖它们除非你意识到这么做的风险
   Vue.util = {
     warn,
     extend,
@@ -41,6 +46,7 @@ export function initGlobalAPI (Vue: GlobalAPI) {
     defineReactive
   }
 
+  // TODO 
   Vue.set = set
   Vue.delete = del
   Vue.nextTick = nextTick

@@ -1,5 +1,7 @@
 /* @flow */
-
+/**
+ * 和标签有关的工具函数
+ */
 import { inBrowser } from 'core/util/env'
 import { makeMap } from 'shared/util'
 
@@ -8,6 +10,9 @@ export const namespaceMap = {
   math: 'http://www.w3.org/1998/Math/MathML'
 }
 
+/**
+ * 是否是html标签
+ */
 export const isHTMLTag = makeMap(
   'html,body,base,head,link,meta,style,title,' +
   'address,article,aside,footer,header,h1,h2,h3,h4,h5,h6,hgroup,nav,section,' +
@@ -33,10 +38,16 @@ export const isSVG = makeMap(
 
 export const isPreTag = (tag: ?string): boolean => tag === 'pre'
 
+/**
+ * 是否是html或者vsg 标签
+ */
 export const isReservedTag = (tag: string): ?boolean => {
   return isHTMLTag(tag) || isSVG(tag)
 }
-
+/**
+ * 查询标签类型，自定义的namespace
+ * 目前好像只能查询是否是svg类型和math类型
+ */
 export function getTagNamespace (tag: string): ?string {
   if (isSVG(tag)) {
     return 'svg'
@@ -48,6 +59,12 @@ export function getTagNamespace (tag: string): ?string {
   }
 }
 
+/**
+ * 判断是否是未知标签
+ * 如果不在浏览器环境，则肯定是未知标签
+ * 大小写不敏感
+ * 有缓存
+ */
 const unknownElementCache = Object.create(null)
 export function isUnknownElement (tag: string): boolean {
   /* istanbul ignore if */
@@ -74,4 +91,7 @@ export function isUnknownElement (tag: string): boolean {
   }
 }
 
+/**
+ * 检查是否是文本输入标签
+ */
 export const isTextInputType = makeMap('text,number,password,search,email,tel,url')

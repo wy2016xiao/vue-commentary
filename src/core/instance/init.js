@@ -12,6 +12,12 @@ import { extend, mergeOptions, formatComponentName } from '../util/index'
 
 let uid = 0
 
+/**
+ *
+ * @date 2020-01-09
+ * @export
+ * @param {Class<Component>} Vue
+ */
 export function initMixin (Vue: Class<Component>) {
   Vue.prototype._init = function (options?: Object) {
     const vm: Component = this

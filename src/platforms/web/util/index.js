@@ -7,7 +7,13 @@ export * from './class'
 export * from './element'
 
 /**
- * Query an element selector if it's not an element already.
+ *
+ * 如果是dom元素则直接返回
+ * 如果不是dom元素则querySelector
+ * 如果找不到则返回一个div
+ * @date 2020-01-08
+ * @param {(string | Element)} el
+ * @returns {Element} Element
  */
 export function query (el: string | Element): Element {
   if (typeof el === 'string') {

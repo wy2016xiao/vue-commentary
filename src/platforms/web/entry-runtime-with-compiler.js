@@ -9,11 +9,18 @@ import { query } from './util/index'
 import { compileToFunctions } from './compiler/index'
 import { shouldDecodeNewlines, shouldDecodeNewlinesForHref } from './util/compat'
 
+/**
+ * 传入id查找dom，返回并缓存id内部dom
+ */
 const idToTemplate = cached(id => {
   const el = query(id)
   return el && el.innerHTML
 })
 
+/**
+ * 定义$mount
+ * @returns {Component} 返回vue实例
+ */
 const mount = Vue.prototype.$mount
 Vue.prototype.$mount = function (
   el?: string | Element,
@@ -23,12 +30,15 @@ Vue.prototype.$mount = function (
 
   /* istanbul ignore if */
   if (el === document.body || el === document.documentElement) {
+    // 如果是body或者根节点就报错
     process.env.NODE_ENV !== 'production' && warn(
       `Do not mount Vue to <html> or <body> - mount to normal elements instead.`
     )
+    // 返回vue实例
     return this
   }
 
+  // $options vue实例的初始化选项
   const options = this.$options
   // resolve template/el and convert to render function
   if (!options.render) {

@@ -4,10 +4,15 @@ export const emptyObject = Object.freeze({})
 
 // These helpers produce better VM code in JS engines due to their
 // explicitness and function inlining.
+/**
+ * 检查是否不存在
+ */
 export function isUndef (v: any): boolean %checks {
   return v === undefined || v === null
 }
-
+/**
+ * 检查是否存在
+ */
 export function isDef (v: any): boolean %checks {
   return v !== undefined && v !== null
 }
@@ -102,6 +107,9 @@ export function toNumber (val: string): number | string {
 /**
  * Make a map and return a function for checking if a key
  * is in that map.
+ * 传入一个字符串，返回一个函数
+ * 该函数用来检查传入的参数是否存在于字符串中
+ * 可选参数：expectsLowerCase 返回的函数是否把参数转成小写
  */
 export function makeMap (
   str: string,
@@ -148,7 +156,13 @@ export function hasOwn (obj: Object | Array<*>, key: string): boolean {
 }
 
 /**
- * Create a cached version of a pure function.
+ * 缓存某一类型的函数的返回值，避免重复运行这种函数
+ * 这类函数的参数应当是一个字符串，并且只有一个参数
+ * @date 2020-01-08
+ * @template F
+ * @template Function
+ * @param {F} fn
+ * @returns {F}
  */
 export function cached<F: Function> (fn: F): F {
   const cache = Object.create(null)
@@ -160,6 +174,7 @@ export function cached<F: Function> (fn: F): F {
 
 /**
  * Camelize a hyphen-delimited string.
+ * 连字符转驼峰
  */
 const camelizeRE = /-(\w)/g
 export const camelize = cached((str: string): string => {
@@ -168,6 +183,7 @@ export const camelize = cached((str: string): string => {
 
 /**
  * Capitalize a string.
+ * 转大写
  */
 export const capitalize = cached((str: string): string => {
   return str.charAt(0).toUpperCase() + str.slice(1)
@@ -175,6 +191,7 @@ export const capitalize = cached((str: string): string => {
 
 /**
  * Hyphenate a camelCase string.
+ * 驼峰转连字符
  */
 const hyphenateRE = /\B([A-Z])/g
 export const hyphenate = cached((str: string): string => {
@@ -190,6 +207,9 @@ export const hyphenate = cached((str: string): string => {
  */
 
 /* istanbul ignore next */
+/**
+ * 一个手写实现的bind函数，用在环境没有bind的地方
+ */
 function polyfillBind (fn: Function, ctx: Object): Function {
   function boundFn (a) {
     const l = arguments.length
@@ -204,6 +224,9 @@ function polyfillBind (fn: Function, ctx: Object): Function {
   return boundFn
 }
 
+/**
+ * 调用当前环境的bind函数
+ */
 function nativeBind (fn: Function, ctx: Object): Function {
   return fn.bind(ctx)
 }
@@ -214,6 +237,7 @@ export const bind = Function.prototype.bind
 
 /**
  * Convert an Array-like object to a real Array.
+ * 把一个长得像数组的对象转换为真的数组
  */
 export function toArray (list: any, start?: number): Array<any> {
   start = start || 0
@@ -227,6 +251,10 @@ export function toArray (list: any, start?: number): Array<any> {
 
 /**
  * Mix properties into target object.
+ * 把一个对象的属性扩展到目标对象
+ * for in 会遍历所有可遍历属性，包括原型链上的
+ * @param {Object} [_from] 被合的对象
+ * @param {Object} to 目标对象
  */
 export function extend (to: Object, _from: ?Object): Object {
   for (const key in _from) {
@@ -237,6 +265,7 @@ export function extend (to: Object, _from: ?Object): Object {
 
 /**
  * Merge an Array of Objects into a single Object.
+ * 把一个对象数组打平成一个对象
  */
 export function toObject (arr: Array<any>): Object {
   const res = {}
@@ -266,11 +295,13 @@ export const no = (a?: any, b?: any, c?: any) => false
 
 /**
  * Return the same value.
+ * 返回相同的值
  */
 export const identity = (_: any) => _
 
 /**
  * Generate a string containing static keys from compiler modules.
+ * 生成一个由模块的staticKeys属性的值组成的数组
  */
 export function genStaticKeys (modules: Array<ModuleOptions>): string {
   return modules.reduce((keys, m) => {
@@ -281,6 +312,11 @@ export function genStaticKeys (modules: Array<ModuleOptions>): string {
 /**
  * Check if two values are loosely equal - that is,
  * if they are plain objects, do they have the same shape?
+ * 检查是否是宽松相等
+ * 如果检查的是两个数组，检查长度以及递归检查每一个成员
+ * 如果是两个DATE对象，检查秒数
+ * 如果是两个对象，检查key是否相同
+ * 非对象类型检查字符串化后的值
  */
 export function looseEqual (a: any, b: any): boolean {
   if (a === b) return true
@@ -321,6 +357,8 @@ export function looseEqual (a: any, b: any): boolean {
  * Return the first index at which a loosely equal value can be
  * found in the array (if value is a plain object, the array must
  * contain an object of the same shape), or -1 if it is not present.
+ * 仿一个indexof
+ * 内部用的looseEqual
  */
 export function looseIndexOf (arr: Array<mixed>, val: mixed): number {
   for (let i = 0; i < arr.length; i++) {
@@ -331,6 +369,9 @@ export function looseIndexOf (arr: Array<mixed>, val: mixed): number {
 
 /**
  * Ensure a function is called only once.
+ * 确保只被调用过一次
+ * 多次调用不会触发
+ * @returns {Function}
  */
 export function once (fn: Function): Function {
   let called = false

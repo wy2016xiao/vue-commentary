@@ -1,5 +1,7 @@
 /* @flow */
-
+/**
+ * 关于环境的工具库
+ */
 // can we use __proto__?
 export const hasProto = '__proto__' in {}
 

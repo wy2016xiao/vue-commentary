@@ -197,13 +197,18 @@ export function defineReactive (
  * Set a property on an object. Adds the new property and
  * triggers change notification if the property doesn't
  * already exist.
+ * 向响应式对象中添加一个属性，并确保这个新属性同样是响应式的，且触发视图更新。
+ * 它必须用于向响应式对象上添加新属性，因为 Vue 无法探测普通的新增属性 
+ * (比如 this.myObject.newProperty = 'hi')
  */
 export function set (target: Array<any> | Object, key: any, val: any): any {
   if (process.env.NODE_ENV !== 'production' &&
     (isUndef(target) || isPrimitive(target))
   ) {
+    // 如果非生产环境并且（不存在或简单值对象）
     warn(`Cannot set reactive property on undefined, null, or primitive value: ${(target: any)}`)
   }
+  
   if (Array.isArray(target) && isValidArrayIndex(key)) {
     target.length = Math.max(target.length, key)
     target.splice(key, 1, val)

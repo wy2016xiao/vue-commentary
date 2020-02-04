@@ -6,7 +6,7 @@ import { lifecycleMixin } from './lifecycle'
 import { warn } from '../util/index'
 
 /**
- * Vue实例构造函数
+ * 定义vue
  */
 function Vue (options) {
   if (process.env.NODE_ENV !== 'production' &&

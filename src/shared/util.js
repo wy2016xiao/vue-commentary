@@ -1,5 +1,7 @@
 /* @flow */
-
+/**
+ * 一个被冻结的空对象
+ */
 export const emptyObject = Object.freeze({})
 
 // These helpers produce better VM code in JS engines due to their
@@ -17,6 +19,9 @@ export function isDef (v: any): boolean %checks {
   return v !== undefined && v !== null
 }
 
+/**
+ * 检查是否是真值
+ */
 export function isTrue (v: any): boolean %checks {
   return v === true
 }
@@ -27,6 +32,7 @@ export function isFalse (v: any): boolean %checks {
 
 /**
  * Check if value is primitive.
+ * 检查是否是简单值
  */
 export function isPrimitive (value: any): boolean %checks {
   return (
@@ -42,6 +48,7 @@ export function isPrimitive (value: any): boolean %checks {
  * Quick object check - this is primarily used to tell
  * Objects from primitive values when we know the value
  * is a JSON-compliant type.
+ * 检查是否是对象
  */
 export function isObject (obj: mixed): boolean %checks {
   return obj !== null && typeof obj === 'object'
@@ -52,6 +59,9 @@ export function isObject (obj: mixed): boolean %checks {
  */
 const _toString = Object.prototype.toString
 
+/**
+ * 获取一个对象的原始类型,可以有所有类型，包括null
+ */
 export function toRawType (value: any): string {
   return _toString.call(value).slice(8, -1)
 }
@@ -59,23 +69,34 @@ export function toRawType (value: any): string {
 /**
  * Strict object type check. Only returns true
  * for plain JavaScript objects.
+ * 检查是否是简单对象
+ * {a: 1}格式
  */
 export function isPlainObject (obj: any): boolean {
   return _toString.call(obj) === '[object Object]'
 }
 
+/**
+ * 判断是否是正则表达式
+ */
 export function isRegExp (v: any): boolean {
   return _toString.call(v) === '[object RegExp]'
 }
 
 /**
  * Check if val is a valid array index.
+ * 检查val是否是一个有效的数组索引
+ * 其实就是验证是否是一个非无穷大的正整数
  */
 export function isValidArrayIndex (val: any): boolean {
   const n = parseFloat(String(val))
   return n >= 0 && Math.floor(n) === n && isFinite(val)
 }
 
+/**
+ * 检查是否是个promise
+ * 会检查then和catch 
+ */
 export function isPromise (val: any): boolean {
   return (
     isDef(val) &&
@@ -86,6 +107,7 @@ export function isPromise (val: any): boolean {
 
 /**
  * Convert a value to a string that is actually rendered.
+ * 真-toString 对象 null 都能转
  */
 export function toString (val: any): string {
   return val == null
@@ -98,6 +120,7 @@ export function toString (val: any): string {
 /**
  * Convert an input value to a number for persistence.
  * If the conversion fails, return original string.
+ * 转换成数字
  */
 export function toNumber (val: string): number | string {
   const n = parseFloat(val)
@@ -127,16 +150,21 @@ export function makeMap (
 
 /**
  * Check if a tag is a built-in tag.
+ * 检查标签是否是内置标签
+ * slot,component
  */
 export const isBuiltInTag = makeMap('slot,component', true)
 
 /**
  * Check if an attribute is a reserved attribute.
+ * 检查是否是保留属性
+ * key,ref,slot,slot-scope,is
  */
 export const isReservedAttribute = makeMap('key,ref,slot,slot-scope,is')
 
 /**
  * Remove an item from an array.
+ * 从一个数组中移除指定下标的成员
  */
 export function remove (arr: Array<any>, item: any): Array<any> | void {
   if (arr.length) {
@@ -149,6 +177,7 @@ export function remove (arr: Array<any>, item: any): Array<any> | void {
 
 /**
  * Check whether an object has the property.
+ * 查看一个对象是否有某个成员属性
  */
 const hasOwnProperty = Object.prototype.hasOwnProperty
 export function hasOwn (obj: Object | Array<*>, key: string): boolean {
@@ -266,6 +295,7 @@ export function extend (to: Object, _from: ?Object): Object {
 /**
  * Merge an Array of Objects into a single Object.
  * 把一个对象数组打平成一个对象
+ * [{a: 1}, {b: 2}] => {a:1, b:2}
  */
 export function toObject (arr: Array<any>): Object {
   const res = {}
@@ -283,11 +313,13 @@ export function toObject (arr: Array<any>): Object {
  * Perform no operation.
  * Stubbing args to make Flow happy without leaving useless transpiled code
  * with ...rest (https://flow.org/blog/2017/05/07/Strict-Function-Call-Arity/).
+ * 什么都不做的函数
  */
 export function noop (a?: any, b?: any, c?: any) {}
 
 /**
  * Always return false.
+ * 始终返回false的函数
  */
 export const no = (a?: any, b?: any, c?: any) => false
 
@@ -358,7 +390,8 @@ export function looseEqual (a: any, b: any): boolean {
  * found in the array (if value is a plain object, the array must
  * contain an object of the same shape), or -1 if it is not present.
  * 仿一个indexof
- * 内部用的looseEqual
+ * 内部用的looseEqual判断是否存在该值
+ * 存在就返回位置index
  */
 export function looseIndexOf (arr: Array<mixed>, val: mixed): number {
   for (let i = 0; i < arr.length; i++) {

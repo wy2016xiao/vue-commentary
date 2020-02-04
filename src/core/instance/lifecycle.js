@@ -29,6 +29,13 @@ export function setActiveInstance(vm: Component) {
   }
 }
 
+/**
+ * 初始化生命周期
+ * 初始化一些变量 $parent $root $children _watcher _inactive
+ * @date 2020-01-13
+ * @export
+ * @param {Component} vm
+ */
 export function initLifecycle (vm: Component) {
   const options = vm.$options
 
@@ -333,6 +340,13 @@ export function deactivateChildComponent (vm: Component, direct?: boolean) {
   }
 }
 
+/**
+ * 调用用户自定义的生命周期钩子函数
+ * @date 2020-01-13
+ * @export
+ * @param {Component} vm
+ * @param {string} hook
+ */
 export function callHook (vm: Component, hook: string) {
   // #7573 disable dep collection when invoking lifecycle hooks
   pushTarget()

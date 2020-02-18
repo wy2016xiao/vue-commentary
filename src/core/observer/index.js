@@ -33,6 +33,7 @@ export function toggleObserving (value: boolean) {
  * object. Once attached, the observer converts the target
  * object's property keys into getter/setters that
  * collect dependencies and dispatch updates.
+ * Observer类能给目标对象的属性名附加getter/setter来收集依赖和发布更新
  */
 export class Observer {
   value: any;
@@ -103,15 +104,29 @@ function copyAugment (target: Object, src: Object, keys: Array<string>) {
 }
 
 /**
- * Attempt to create an observer instance for a value,
- * returns the new observer if successfully observed,
- * or the existing observer if the value already has one.
+ * 尝试创建一个该对象的观察者实例
+ * 如果成功观察，返回一个新的观察者实例
+ * 如果已经存在，返回存在的观察者实例（在某些情况下不会添加）
+ * 不会添加的场景包括
+ * 1.修改变量shouldObserve
+ * 2.非数组或者简单对象
+ * 3.不可扩展
+ * 4._isVue属性是真值
+ * 
+ * @date 2020-02-04
+ * @export
+ * @param {*} value - 将被观察的对象
+ * @param {?boolean} asRootData - 是否是根数据
+ * @returns {(Observer | void)}
  */
 export function observe (value: any, asRootData: ?boolean): Observer | void {
+  // 如果不是个对象或者是VNode实例，就不进行观察
   if (!isObject(value) || value instanceof VNode) {
     return
   }
   let ob: Observer | void
+  // 如果自身有__ob__属性并且该属性是observer的实例，那就直接返回这个属性
+  // 没有就加一个__ob__属性
   if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
     ob = value.__ob__
   } else if (
@@ -124,6 +139,7 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
     ob = new Observer(value)
   }
   if (asRootData && ob) {
+    // 如果是根数据或者有ob属性了，就给vmCount属性+1
     ob.vmCount++
   }
   return ob

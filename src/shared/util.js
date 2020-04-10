@@ -70,7 +70,8 @@ export function toRawType (value: any): string {
  * Strict object type check. Only returns true
  * for plain JavaScript objects.
  * 检查是否是简单对象
- * {a: 1}格式
+ * 是指用字面量或者new Object创建的对象
+ * [object Object]
  */
 export function isPlainObject (obj: any): boolean {
   return _toString.call(obj) === '[object Object]'

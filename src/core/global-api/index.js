@@ -34,10 +34,7 @@ export function initGlobalAPI (Vue: GlobalAPI) {
   // 把设置项放在Vue实例上方便使用
   Object.defineProperty(Vue, 'config', configDef)
 
-  // exposed util methods.
-  // NOTE: these are not considered part of the public API - avoid relying on
-  // them unless you are aware of the risk.
-  // 暴露一些工具函数给自己而非用户使用
+  // 暴露一些工具函数给框架自己而非用户使用
   // 这些不被认为是公共API的一部分，避免去依赖它们除非你意识到这么做的风险
   Vue.util = {
     warn,
@@ -51,13 +48,15 @@ export function initGlobalAPI (Vue: GlobalAPI) {
   Vue.delete = del
   Vue.nextTick = nextTick
 
-  // 2.6 explicit observable API
-  Vue.observable = <T>(obj: T): T => {
+  // 2.6 新增的observable api
+  Vue.observable = (obj) => {
     observe(obj)
     return obj
   }
 
+  // 万恶之源，初始化options属性
   Vue.options = Object.create(null)
+  // 'component' 'directive' 'filter' '_base'
   ASSET_TYPES.forEach(type => {
     Vue.options[type + 's'] = Object.create(null)
   })

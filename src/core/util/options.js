@@ -85,7 +85,7 @@ export function mergeDataOrFn (
   vm?: Component
 ): ?Function {
   if (!vm) {
-    // in a Vue.extend merge, both should be functions
+    // 常规临界处理
     if (!childVal) {
       return parentVal
     }
@@ -129,6 +129,7 @@ strats.data = function (
 ): ?Function {
   if (!vm) {
     if (childVal && typeof childVal !== 'function') {
+      // data必须是函数，否则报错并返回parentVal（默认data）
       process.env.NODE_ENV !== 'production' && warn(
         'The "data" option should be a function ' +
         'that returns a per-instance value in component ' +
@@ -145,7 +146,13 @@ strats.data = function (
 }
 
 /**
- * Hooks and props are merged as arrays.
+ * 生命周期钩子的合并策略
+ * 如果没有childVal直接返回parentVal
+ * 如果有，判断有没有parentVal
+ *   如果有，parentVal.concat(childVal)
+ *   如果没有，判断childVal是否是数组
+ *     如果是，返回childVal
+ *     如果不是，证明传的是单个Function，把它包装成数组
  */
 function mergeHook (
   parentVal: ?Array<Function>,
@@ -163,6 +170,9 @@ function mergeHook (
     : res
 }
 
+/**
+ * 去重
+ */
 function dedupeHooks (hooks) {
   const res = []
   for (let i = 0; i < hooks.length; i++) {

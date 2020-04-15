@@ -40,14 +40,21 @@ export function initLifecycle (vm: Component) {
   const options = vm.$options
 
   // locate first non-abstract parent
+  // 定位到第一个非抽象组件
+  // 抽象组件：自身不会渲染一个 DOM 元素，也不会出现在父组件链中
   let parent = options.parent
   if (parent && !options.abstract) {
     while (parent.$options.abstract && parent.$parent) {
       parent = parent.$parent
     }
+    // parent不是为undefined，并且标记位非抽象，通过while循环父组件链，找出第一个非抽象的组件，并赋值为parent，该parent的子组件数据添加vm对象，形成一个环形链表
+    // 这个链表是非抽象组件链表，忽略了抽象组件
     parent.$children.push(vm)
   }
 
+  // 初始化vue实例的一系列属性
+  // $parent $root $children $refs _watcher _inactive _directInactive _isMounted 
+  // _isDestroyed _isBeingDestroyed
   vm.$parent = parent
   vm.$root = parent ? parent.$root : vm
 

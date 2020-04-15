@@ -56,7 +56,7 @@ export function initGlobalAPI (Vue: GlobalAPI) {
 
   // 万恶之源，初始化options属性
   Vue.options = Object.create(null)
-  // 'component' 'directive' 'filter' '_base'
+  // ASSET_TYPES: 'component' 'directive' 'filter'
   ASSET_TYPES.forEach(type => {
     Vue.options[type + 's'] = Object.create(null)
   })

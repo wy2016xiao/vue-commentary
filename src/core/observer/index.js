@@ -147,6 +147,14 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
 
 /**
  * Define a reactive property on an Object.
+ * 定义一个对象的属性为响应式属性
+ * @date 2020-04-20
+ * @export
+ * @param {Object} obj - 被定义的对象
+ * @param {string} key - 被定义的对象的属性名
+ * @param {*} val - 被定义的对象的属性值
+ * @param {?Function} [customSetter] 
+ * @param {boolean} [shallow]
  */
 export function defineReactive (
   obj: Object,
@@ -158,13 +166,19 @@ export function defineReactive (
   const dep = new Dep()
 
   const property = Object.getOwnPropertyDescriptor(obj, key)
+  // 如果属性不允许被设置就直接返回
   if (property && property.configurable === false) {
     return
   }
 
-  // cater for pre-defined getter/setters
+  // 获取该属性的getter和setter
+  // 一般是没有的，除非已经被框架或者用户定义过
   const getter = property && property.get
   const setter = property && property.set
+  // 如果已经有seller或者没有getter 并且没有设置值
+  // 证明已经有了该属性，用户应该是想要把该属性设置成响应式
+  // 给val赋值
+  // 不懂为什么要 || setter
   if ((!getter || setter) && arguments.length === 2) {
     val = obj[key]
   }

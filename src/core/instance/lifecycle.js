@@ -47,7 +47,7 @@ export function initLifecycle (vm: Component) {
     while (parent.$options.abstract && parent.$parent) {
       parent = parent.$parent
     }
-    // parent不是为undefined，并且标记位非抽象，通过while循环父组件链，找出第一个非抽象的组件，并赋值为parent，该parent的子组件数据添加vm对象，形成一个环形链表
+    // parent不是为undefined，并且标记位非抽象，通过while循环父组件链，找出第一个非抽象的组件（最顶层，第一代祖宗），并赋值为parent，为该parent的子组件数据添加vm对象，形成一个环形链表
     // 这个链表是非抽象组件链表，忽略了抽象组件
     parent.$children.push(vm)
   }
@@ -356,16 +356,21 @@ export function deactivateChildComponent (vm: Component, direct?: boolean) {
  */
 export function callHook (vm: Component, hook: string) {
   // #7573 disable dep collection when invoking lifecycle hooks
+  // 使用一个空的watch实例
   pushTarget()
+  // 获取定义的钩子函数
   const handlers = vm.$options[hook]
   const info = `${hook} hook`
   if (handlers) {
+    // 调用
     for (let i = 0, j = handlers.length; i < j; i++) {
       invokeWithErrorHandling(handlers[i], vm, null, vm, info)
     }
   }
+  // 如果有生命周期指令，也一并调用
   if (vm._hasHookEvent) {
     vm.$emit('hook:' + hook)
   }
+  // 推出空的watch实例
   popTarget()
 }

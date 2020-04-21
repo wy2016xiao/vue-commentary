@@ -24,6 +24,10 @@ if (process.env.NODE_ENV !== 'production') {
     )
   }
 
+  /**
+   * 保留前缀警告
+   * 不能使用$和_作为变量前缀
+   */
   const warnReservedPrefix = (target, key) => {
     warn(
       `Property "${key}" must be accessed with "$data.${key}" because ` +
@@ -34,6 +38,9 @@ if (process.env.NODE_ENV !== 'production') {
     )
   }
 
+  /**
+   * 检查当前是否能使用Proxy类
+   */
   const hasProxy =
     typeof Proxy !== 'undefined' && isNative(Proxy)
 
@@ -53,31 +60,59 @@ if (process.env.NODE_ENV !== 'production') {
   }
 
   const hasHandler = {
+    /**
+     * 判断是否拥有这个属性
+     * 会做一些过滤
+     */
     has (target, key) {
+      // target是否拥有key
       const has = key in target
+      // 检查这个key是否是全局属性
+      // (windows上的，比如Number JSON等等) 或 (_开头并且不在vm.$data内)
       const isAllowed = allowedGlobals(key) ||
         (typeof key === 'string' && key.charAt(0) === '_' && !(key in target.$data))
+
+      // 如果不是全局属性并且不以_开头且非windows上的属性名称
       if (!has && !isAllowed) {
+        // 但data里面有这个属性，说明使用了类似this.$user_id的写法。做出保留前缀被误用告警
+        // 否则做出不存在告警
         if (key in target.$data) warnReservedPrefix(target, key)
         else warnNonPresent(target, key)
       }
+
       return has || !isAllowed
     }
   }
 
   const getHandler = {
+    /**
+     * target目前是VM实例
+     * key是用户将要访问的key
+     */
     get (target, key) {
+      // 判断target是否有key属性
+      // key in target   牛逼的判断方式
+      // 不然的话可以使用taerget[key]
+      // 但这样需要判断undefined等特殊情况
       if (typeof key === 'string' && !(key in target)) {
+        // 如果目标里面没有这个属性
+        
+        // 但data里面有这个属性，说明使用了类似this.$user_id的写法。做出保留前缀被误用告警
+        // 否则做出不存在告警
         if (key in target.$data) warnReservedPrefix(target, key)
         else warnNonPresent(target, key)
       }
+
+      // 如果目标有这个属性，返回这个属性
       return target[key]
     }
   }
 
   initProxy = function initProxy (vm) {
+    // 决定使用什么方式去定义_renderProxy属性
+    // 如果是ES6就使用Proxy
     if (hasProxy) {
-      // determine which proxy handler to use
+      // 如果能使用Proxy类
       const options = vm.$options
       const handlers = options.render && options.render._withStripped
         ? getHandler

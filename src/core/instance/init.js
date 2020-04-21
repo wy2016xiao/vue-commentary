@@ -58,7 +58,12 @@ export function initMixin (Vue: Class<Component>) {
         vm
       )
     }
-    /* istanbul ignore else */
+
+    /**
+     * 第三部分 
+     * 初始化相关功能
+     */
+
     if (process.env.NODE_ENV !== 'production') {
       // 开发环境
       // 代理功能初始化，设置vm._renderProxy
@@ -68,21 +73,27 @@ export function initMixin (Vue: Class<Component>) {
       // _renderProxy属性指向vm本身
       vm._renderProxy = vm
     }
+
     // _self保存vm本身
     vm._self = vm
-    // 初始化一系列变量
+
+    // 初始化vue实例的一系列属性
+    // $parent $root $children $refs _watcher _inactive _directInactive _isMounted 
+    // _isDestroyed _isBeingDestroyed
     initLifecycle(vm)
-    // 存储父组件绑定当前子组件的事件，保存到vm._events。
+    // 存储父组件绑定的当前子组件的事件，保存到vm._events。
     initEvents(vm)
     // 定义vm._c和 vm.$createElement等方法
     initRender(vm)
     // 生命周期事件通知
+    // 挨着调用用户定义的生命周期钩子函数和指令
     callHook(vm, 'beforeCreate')
     // 通过逐级查找，从父级provide中获取子级组件inject定义的属性值，并增加对该属性的监听
     initInjections(vm) 
     // 是对prop，method，data，computed，watch的初始化，增加对定义属性的监听
     initState(vm)
-
+    // 把用户定义的provide赋值到_provided上
+    // 如果是函数形式，就调用一下
     initProvide(vm)
     // 生命周期事件通知
     callHook(vm, 'created')

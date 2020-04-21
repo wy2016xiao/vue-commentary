@@ -18,6 +18,16 @@ type PropOptions = {
   validator: ?Function
 };
 
+/**
+ * 验证props
+ * @date 2020-04-20
+ * @export
+ * @param {string} key - props's key
+ * @param {Object} propOptions - almost options.props
+ * @param {Object} propsData - vm's parents props
+ * @param {Component} [vm] - vm
+ * @returns {*}
+ */
 export function validateProp (
   key: string,
   propOptions: Object,
@@ -25,6 +35,7 @@ export function validateProp (
   vm?: Component
 ): any {
   const prop = propOptions[key]
+  // absent表示没有这个属性
   const absent = !hasOwn(propsData, key)
   let value = propsData[key]
   // boolean casting

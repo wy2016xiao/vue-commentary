@@ -20,6 +20,8 @@ export const isPhantomJS = UA && /phantomjs/.test(UA)
 export const isFF = UA && UA.match(/firefox\/(\d+)/)
 
 // Firefox has a "watch" function on Object.prototype...
+// 火狐浏览器的对象原型上有一个watch函数
+// 该变量用来判断是否是火狐浏览器
 export const nativeWatch = ({}).watch
 
 export let supportsPassive = false

@@ -16,10 +16,18 @@ import VNode, { createEmptyVNode } from '../vdom/vnode'
 
 import { isUpdatingChildComponent } from './lifecycle'
 
+/**
+ * 首先对_vnode与_staticTrees进行初始化。
+ * 接着对$slots,$scopedSlots赋值。
+ * vm._c与vm.$createElement分别是对template和render函数处理的方法
+ */
 export function initRender (vm: Component) {
+  // 保存有node树的根节点
   vm._vnode = null // the root of the child tree
+  // v-once树的缓存
   vm._staticTrees = null // v-once cached trees
   const options = vm.$options
+  // 为什么vm.$vnode取的是_parentVnode
   const parentVnode = vm.$vnode = options._parentVnode // the placeholder node in parent tree
   const renderContext = parentVnode && parentVnode.context
   vm.$slots = resolveSlots(options._renderChildren, renderContext)
@@ -28,9 +36,11 @@ export function initRender (vm: Component) {
   // so that we get proper render context inside it.
   // args order: tag, data, children, normalizationType, alwaysNormalize
   // internal version is used by render functions compiled from templates
+  // tamplate 函数的处理
   vm._c = (a, b, c, d) => createElement(vm, a, b, c, d, false)
   // normalization is always applied for the public version, used in
   // user-written render functions.
+  // render函数的处理
   vm.$createElement = (a, b, c, d) => createElement(vm, a, b, c, d, true)
 
   // $attrs & $listeners are exposed for easier HOC creation.
@@ -38,6 +48,7 @@ export function initRender (vm: Component) {
   const parentData = parentVnode && parentVnode.data
 
   /* istanbul ignore else */
+  // 对$attrs和listeners进行监听
   if (process.env.NODE_ENV !== 'production') {
     defineReactive(vm, '$attrs', parentData && parentData.attrs || emptyObject, () => {
       !isUpdatingChildComponent && warn(`$attrs is readonly.`, vm)
@@ -51,6 +62,9 @@ export function initRender (vm: Component) {
   }
 }
 
+/**
+ * 当前的渲染实例
+ */
 export let currentRenderingInstance: Component | null = null
 
 // for testing only

@@ -33,6 +33,17 @@ export function handleError (err: Error, vm: any, info: string) {
   }
 }
 
+/**
+ * 带错误处理的函数调用
+ * @date 2020-04-16
+ * @export
+ * @param {Function} handler
+ * @param {*} context
+ * @param {(null | any[])} args
+ * @param {*} vm
+ * @param {string} info
+ * @returns 
+ */
 export function invokeWithErrorHandling (
   handler: Function,
   context: any,

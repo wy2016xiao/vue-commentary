@@ -52,6 +52,9 @@ function createOnceHandler (event, fn) {
   }
 }
 
+/**
+ * 更新实例上的事件列表
+ */
 export function updateComponentListeners (
   vm: Component, // 实例
   listeners: Object, // _parentListeners对象

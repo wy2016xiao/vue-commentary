@@ -128,6 +128,18 @@ export function createPatchFunction (backend) {
 
   let creatingElmInVPre = 0
 
+  /**
+   *
+   *
+   * @date 2020-04-23
+   * @param {*} vnode - 虚拟node
+   * @param {*} insertedVnodeQueue
+   * @param {*} parentElm
+   * @param {*} refElm
+   * @param {*} nested
+   * @param {*} ownerArray
+   * @param {*} index
+   */
   function createElm (
     vnode,
     insertedVnodeQueue,
@@ -143,6 +155,11 @@ export function createPatchFunction (backend) {
       // potential patch errors down the road when it's used as an insertion
       // reference node. Instead, we clone the node on-demand before creating
       // associated DOM element for it.
+      //这个vnode是在之前的渲染中使用的!
+      //现在它被用作一个新节点，覆盖它的elm会导致
+      //当它被用作插入时，可能会出现补丁错误
+      //引用节点。相反，我们在创建之前按需克隆节点
+      //关联的DOM元素。
       vnode = ownerArray[index] = cloneVNode(vnode)
     }
 
@@ -155,6 +172,7 @@ export function createPatchFunction (backend) {
     const children = vnode.children
     const tag = vnode.tag
     if (isDef(tag)) {
+      // 1.合法性校验 
       if (process.env.NODE_ENV !== 'production') {
         if (data && data.pre) {
           creatingElmInVPre++
@@ -169,6 +187,7 @@ export function createPatchFunction (backend) {
         }
       }
 
+      // 2、创建该vnode的dom元素
       vnode.elm = vnode.ns
         ? nodeOps.createElementNS(vnode.ns, tag)
         : nodeOps.createElement(tag, vnode)
@@ -186,11 +205,14 @@ export function createPatchFunction (backend) {
           }
           insert(parentElm, vnode.elm, refElm)
         }
+        // 3、创建子节点
         createChildren(vnode, children, insertedVnodeQueue)
         if (appendAsTree) {
+          // 4、执行所有的create钩子
           if (isDef(data)) {
             invokeCreateHooks(vnode, insertedVnodeQueue)
           }
+          // 5、插入节点
           insert(parentElm, vnode.elm, refElm)
         }
       } else {
@@ -287,7 +309,15 @@ export function createPatchFunction (backend) {
     }
   }
 
+  /**
+   * 创建子节点
+   * @date 2020-04-23
+   * @param {*} vnode
+   * @param {*} children
+   * @param {*} insertedVnodeQueue
+   */
   function createChildren (vnode, children, insertedVnodeQueue) {
+    // 如果有子节点，则调用creatElm递归创建
     if (Array.isArray(children)) {
       if (process.env.NODE_ENV !== 'production') {
         checkDuplicateKeys(children)
@@ -296,6 +326,7 @@ export function createPatchFunction (backend) {
         createElm(children[i], insertedVnodeQueue, vnode.elm, null, true, children, i)
       }
     } else if (isPrimitive(vnode.text)) {
+      // 对于叶节点，直接添加text
       nodeOps.appendChild(vnode.elm, nodeOps.createTextNode(String(vnode.text)))
     }
   }
@@ -703,6 +734,19 @@ export function createPatchFunction (backend) {
     }
   }
 
+  /**
+   * vm.__patch__的实际调用函数
+   * 用来渲染和更新实际DOM
+   * e.g.
+   * vm.__patch__(vm.$el, vnode, hydrating, false )
+   * vm.__patch__(prevVnode, vnode)
+   * @date 2020-04-23
+   * @param {*} oldVnode
+   * @param {*} vnode
+   * @param {*} hydrating
+   * @param {*} removeOnly
+   * @returns 
+   */
   return function patch (oldVnode, vnode, hydrating, removeOnly) {
     if (isUndef(vnode)) {
       if (isDef(oldVnode)) invokeDestroyHook(oldVnode)
@@ -714,6 +758,7 @@ export function createPatchFunction (backend) {
 
     if (isUndef(oldVnode)) {
       // empty mount (likely as component), create new root element
+      // 没有oldVnode，证明初次渲染
       isInitialPatch = true
       createElm(vnode, insertedVnodeQueue)
     } else {

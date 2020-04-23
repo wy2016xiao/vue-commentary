@@ -25,6 +25,22 @@ const ALWAYS_NORMALIZE = 2
 
 // wrapper function for providing a more flexible interface
 // without getting yelled at by flow
+/**
+ * 创建VNode
+ *
+ * @date 2020-04-21
+ * @export
+ * @param {Component} context - vm
+ * @param {*} tag / {String | Object | Function}
+ * 一个 HTML 标签字符串，组件选项对象，或者
+ * 解析上述任何一种的一个 async 异步函数。必需参数。
+ * @param {*} data - 一个包含模板相关属性的数据对象，可选参数
+ * @param {*} children - 子虚拟节点 (VNodes)，由 `createElement()` 构建而成，
+ * 也可以使用字符串来生成“文本虚拟节点”。可选参数。
+ * @param {*} normalizationType - 子节点的规范类型，对于手写的render方法需要进行规整
+ * @param {boolean} alwaysNormalize
+ * @returns {(VNode | Array<VNode>)}
+ */
 export function createElement (
   context: Component,
   tag: any,
@@ -33,17 +49,32 @@ export function createElement (
   normalizationType: any,
   alwaysNormalize: boolean
 ): VNode | Array<VNode> {
+  // 处理data的入参，当没有data属性的情况下，这个参数表示的是children
+  // 主要是怕用户传了个奇怪的data,那就默认用户没有传data
   if (Array.isArray(data) || isPrimitive(data)) {
     normalizationType = children
     children = data
     data = undefined
   }
+  // 是否定义了永远标准化
   if (isTrue(alwaysNormalize)) {
     normalizationType = ALWAYS_NORMALIZE
   }
+  // 这才是核心
   return _createElement(context, tag, data, children, normalizationType)
 }
 
+/**
+ * 创建虚拟dom tree
+ * @date 2020-04-21
+ * @export
+ * @param {Component} context - vm
+ * @param {(string | Class<Component> | Function | Object)} [tag]
+ * @param {VNodeData} [data]
+ * @param {*} [children]
+ * @param {number} [normalizationType]
+ * @returns {(VNode | Array<VNode>)}
+ */
 export function _createElement (
   context: Component,
   tag?: string | Class<Component> | Function | Object,
@@ -51,6 +82,7 @@ export function _createElement (
   children?: any,
   normalizationType?: number
 ): VNode | Array<VNode> {
+  // 避免使用被观察的对象作为vnode的选项对象
   if (isDef(data) && isDef((data: any).__ob__)) {
     process.env.NODE_ENV !== 'production' && warn(
       `Avoid using observed data object as vnode data: ${JSON.stringify(data)}\n` +
@@ -80,6 +112,7 @@ export function _createElement (
     }
   }
   // support single function children as default scoped slot
+  // 函数式子节点
   if (Array.isArray(children) &&
     typeof children[0] === 'function'
   ) {
@@ -87,28 +120,40 @@ export function _createElement (
     data.scopedSlots = { default: children[0] }
     children.length = 0
   }
+  // 规整子节点
+  // 经过children的规整，children变成一个类型为VNode的Array
   if (normalizationType === ALWAYS_NORMALIZE) {
     children = normalizeChildren(children)
   } else if (normalizationType === SIMPLE_NORMALIZE) {
     children = simpleNormalizeChildren(children)
   }
   let vnode, ns
+  // 创建VNode
   if (typeof tag === 'string') {
     let Ctor
     ns = (context.$vnode && context.$vnode.ns) || config.getTagNamespace(tag)
+    // 判断是否是内置标签
     if (config.isReservedTag(tag)) {
+      // 保留字段规整
+      // 创建一个普通的VNode，初始化tag，data，children等变量
       // platform built-in elements
       vnode = new VNode(
         config.parsePlatformTagName(tag), data, children,
         undefined, undefined, context
       )
     } else if ((!data || !data.pre) && isDef(Ctor = resolveAsset(context.$options, 'components', tag))) {
+      // 已注册的组件，则调用createComponent创建VNode
       // component
       vnode = createComponent(Ctor, data, context, children, tag)
     } else {
       // unknown or unlisted namespaced elements
       // check at runtime because it may get assigned a namespace when its
       // parent normalizes children
+      // 未知的或未列出的命名空间元素
+      // 在运行时检查，因为它可能会被分配一个名称空间
+      // 标准化子组件
+
+      // 创建一个未知标签的VNode
       vnode = new VNode(
         tag, data, children,
         undefined, undefined, context
@@ -116,6 +161,7 @@ export function _createElement (
     }
   } else {
     // direct component options / constructor
+    // 如果不是个String类型，调用createComponent创建组件类型的VNode
     vnode = createComponent(tag, data, context, children)
   }
   if (Array.isArray(vnode)) {

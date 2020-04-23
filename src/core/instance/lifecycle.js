@@ -70,6 +70,8 @@ export function initLifecycle (vm: Component) {
 }
 
 export function lifecycleMixin (Vue: Class<Component>) {
+  // vm._update会把vnode渲染成真实的dom节点
+  // 它调用的时机有两个地方，第一个是首次渲染，第二个是数据更新
   Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
     const vm: Component = this
     const prevEl = vm.$el
@@ -152,14 +154,26 @@ export function lifecycleMixin (Vue: Class<Component>) {
   }
 }
 
+/**
+ *
+ * @date 2020-04-21
+ * @export
+ * @param {Component} vm
+ * @param {?Element} el
+ * @param {boolean} [hydrating]
+ * @returns {Component}
+ */
 export function mountComponent (
   vm: Component,
   el: ?Element,
   hydrating?: boolean
 ): Component {
   vm.$el = el
+  // 如果没有使用render的方式去定义template（createElement）
   if (!vm.$options.render) {
+    // 给一个默认值
     vm.$options.render = createEmptyVNode
+    // 
     if (process.env.NODE_ENV !== 'production') {
       /* istanbul ignore if */
       if ((vm.$options.template && vm.$options.template.charAt(0) !== '#') ||
@@ -182,6 +196,7 @@ export function mountComponent (
 
   let updateComponent
   /* istanbul ignore if */
+  // 定义updateComponent，vm._render将render表达式转化为vnode，vm._update将vnode渲染成实际的dom节点
   if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
     updateComponent = () => {
       const name = vm._name
@@ -200,6 +215,9 @@ export function mountComponent (
       measure(`vue ${name} patch`, startTag, endTag)
     }
   } else {
+    // 定义updateComponent，
+    // vm._render将render表达式转化为vnode，
+    // vm._update将vnode渲染成实际的dom节点
     updateComponent = () => {
       vm._update(vm._render(), hydrating)
     }
@@ -208,6 +226,10 @@ export function mountComponent (
   // we set this to vm._watcher inside the watcher's constructor
   // since the watcher's initial patch may call $forceUpdate (e.g. inside child
   // component's mounted hook), which relies on vm._watcher being already defined
+  // 首次渲染，并监听数据变化，并实现dom的更新
+  // new Watcher干了两件事情
+  // 执行updateComponent方法，实现dom的渲染，并完成表达式对属性变量的依赖收集。
+  // 一旦包含的表达式中的属性变量有变化，将重新执行update。
   new Watcher(vm, updateComponent, noop, {
     before () {
       if (vm._isMounted && !vm._isDestroyed) {
@@ -219,6 +241,7 @@ export function mountComponent (
 
   // manually mounted instance, call mounted on self
   // mounted is called for render-created child components in its inserted hook
+  // 挂载完成，回调mount函数
   if (vm.$vnode == null) {
     vm._isMounted = true
     callHook(vm, 'mounted')
@@ -226,6 +249,17 @@ export function mountComponent (
   return vm
 }
 
+/**
+ *
+ *
+ * @date 2020-04-21
+ * @export
+ * @param {Component} vm
+ * @param {?Object} propsData
+ * @param {?Object} listeners
+ * @param {MountedComponentVNode} parentVnode
+ * @param {?Array<VNode>} renderChildren
+ */
 export function updateChildComponent (
   vm: Component,
   propsData: ?Object,

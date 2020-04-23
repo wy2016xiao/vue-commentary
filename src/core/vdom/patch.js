@@ -67,6 +67,12 @@ function createKeyToOldIdx (children, beginIdx, endIdx) {
   return map
 }
 
+/**
+ * 一个终极长的函数
+ * 内部定义了一系列方法，最后返回了patch方法，
+ * 它有四个参数，实际在vm.__patch__(vm.$el, vnode, hydrating, false )传入
+ * 
+ */
 export function createPatchFunction (backend) {
   let i, j
   const cbs = {}

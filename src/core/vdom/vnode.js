@@ -1,5 +1,12 @@
 /* @flow */
 
+
+/**
+ * VNode类
+ * @date 2020-04-21
+ * @export
+ * @class VNode
+ */
 export default class VNode {
   tag: string | void;
   data: VNodeData | void;
@@ -39,28 +46,50 @@ export default class VNode {
     componentOptions?: VNodeComponentOptions,
     asyncFactory?: Function
   ) {
+    // 当前节点标签名
     this.tag = tag
+    // 当前节点对应的对象，包含了具体的一些数据信息，
+    // 是一个VNodeData类型，可以参考VNodeData类型中的数据信息
     this.data = data
+    // 当前节点的子节点，一个数组
     this.children = children
+    // 当前节点的文本
     this.text = text
+    // 当前虚拟节点对应的真实节点
     this.elm = elm
+    // 当前节点的命名空间
     this.ns = undefined
+    // 编译作用域
     this.context = context
+    // 函数化组件作用域
     this.fnContext = undefined
     this.fnOptions = undefined
     this.fnScopeId = undefined
+    // 节点的key属性，被当做节点的标志，用以优化
     this.key = data && data.key
+    // 当前节点对应的组件的options选项
     this.componentOptions = componentOptions
+    // 当前节点对应的组件的实例
     this.componentInstance = undefined
+    // 当前节点的父节点
     this.parent = undefined
+    // 简而言之就是是否为原生HTML或只是普通文本，innerHTML的时候为true，textContent的时候为false
     this.raw = false
+    // 静态节点的标志
     this.isStatic = false
+    // 是否作为跟节点插入
     this.isRootInsert = true
+    // 是否为注释节点
     this.isComment = false
+    // 是否为克隆节点
     this.isCloned = false
+    // 是否有v-once指令
     this.isOnce = false
+    // 异步组件的工厂方法
     this.asyncFactory = asyncFactory
+    // 异步源
     this.asyncMeta = undefined
+    // 是否异步的预赋值
     this.isAsyncPlaceholder = false
   }
 

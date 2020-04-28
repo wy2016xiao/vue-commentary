@@ -51,24 +51,38 @@ function decodeAttr (value, shouldDecodeNewlines) {
   return value.replace(re, match => decodingMap[match])
 }
 
+/**
+ * 解析tamplate字符串的主要方法
+ * 返回AST
+ * @date 2020-04-24
+ * @export
+ * @param {*} html
+ * @param {*} options
+ */
 export function parseHTML (html, options) {
   const stack = []
   const expectHTML = options.expectHTML
+  // 检测一个标签是否是一元标签
   const isUnaryTag = options.isUnaryTag || no
+  // 检测一个标签是否是可以省略闭合标签的非一元标签
   const canBeLeftOpenTag = options.canBeLeftOpenTag || no
   let index = 0
   let last, lastTag
+  // 循环处理html
   while (html) {
     last = html
     // Make sure we're not in a plaintext content element like script/style
+    // 处理非script，style,textarea
     if (!lastTag || !isPlainTextElement(lastTag)) {
       let textEnd = html.indexOf('<')
       if (textEnd === 0) {
         // Comment:
+        // 注释开头
         if (comment.test(html)) {
           const commentEnd = html.indexOf('-->')
-
+          // 1."<"字符打头
           if (commentEnd >= 0) {
+            // 1.1、处理标准注释,<!--
             if (options.shouldKeepComment) {
               options.comment(html.substring(4, commentEnd), index, index + commentEnd + 3)
             }
@@ -78,6 +92,7 @@ export function parseHTML (html, options) {
         }
 
         // http://en.wikipedia.org/wiki/Conditional_comment#Downlevel-revealed_conditional_comment
+        // 1.2、处理条件注释,<![
         if (conditionalComment.test(html)) {
           const conditionalEnd = html.indexOf(']>')
 
@@ -88,6 +103,7 @@ export function parseHTML (html, options) {
         }
 
         // Doctype:
+        // 1.3、处理申明，DOCTYPE
         const doctypeMatch = html.match(doctype)
         if (doctypeMatch) {
           advance(doctypeMatch[0].length)
@@ -95,6 +111,7 @@ export function parseHTML (html, options) {
         }
 
         // End tag:
+        // 1.4、处理结束标签
         const endTagMatch = html.match(endTag)
         if (endTagMatch) {
           const curIndex = index
@@ -104,6 +121,7 @@ export function parseHTML (html, options) {
         }
 
         // Start tag:
+        // 1.5、处理开始标签
         const startTagMatch = parseStartTag()
         if (startTagMatch) {
           handleStartTag(startTagMatch)
@@ -114,6 +132,7 @@ export function parseHTML (html, options) {
         }
       }
 
+      // 2、非"<"打头，作为text内容处理
       let text, rest, next
       if (textEnd >= 0) {
         rest = html.slice(textEnd)

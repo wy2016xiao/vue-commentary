@@ -75,6 +75,8 @@ export function createASTElement (
 
 /**
  * Convert HTML string to AST.
+ * 把html字符串转成AST（抽象语法树）
+ * AST: 一个含有type tag attrsList children等属性的对象，用来描述html
  */
 export function parse (
   template: string,
@@ -97,6 +99,7 @@ export function parse (
   const stack = []
   const preserveWhitespace = options.preserveWhitespace !== false
   const whitespaceOption = options.whitespace
+  // 定义AST模型对象
   let root
   let currentParent
   let inVPre = false
@@ -201,6 +204,7 @@ export function parse (
     }
   }
 
+  // 主要的解析方法
   parseHTML(template, {
     warn,
     expectHTML: options.expectHTML,
@@ -396,6 +400,7 @@ export function parse (
       }
     }
   })
+  // 返回AST
   return root
 }
 

@@ -17,6 +17,15 @@ const genStaticKeysCached = cached(genStaticKeys)
  * 1. Hoist them into constants, so that we no longer need to
  *    create fresh nodes for them on each re-render;
  * 2. Completely skip them in the patching process.
+ * 优化器的目标:遍历生成的模板AST树
+ * 检测纯静态的子树，即
+ * 永远不需要改变的DOM。
+ *
+ * 一旦我们检测到这些子树，我们可以:
+ * 
+ *  1。把它们变成常数，这样我们就不需要了
+ * 在每次重新渲染时为它们创建新的节点;
+ *  2。在打补丁的过程中完全跳过它们。
  */
 export function optimize (root: ?ASTElement, options: CompilerOptions) {
   if (!root) return
@@ -44,6 +53,7 @@ function markStatic (node: ASTNode) {
   //1、标注节点的状态
   node.static = isStatic(node)
   //2、对标签节点进行处理
+  // type === 1 表示element
   if (node.type === 1) {
     // do not make component slot content static. this avoids
     // 1. components not able to mutate slot nodes
@@ -84,13 +94,20 @@ function markStatic (node: ASTNode) {
  * 标注静态根节点
  */
 function markStaticRoots (node: ASTNode, isInFor: boolean) {
+  // type === 1 表示element
   if (node.type === 1) {
+    // 用以标记在v-for内的静态节点
+    // 这个属性用以告诉renderStatic(_m)对这个节点生成新的key
+    // 避免patch error
     if (node.static || node.once) {
       node.staticInFor = isInFor
     }
     // For a node to qualify as a static root, it should have children that
     // are not just static text. Otherwise the cost of hoisting out will
     // outweigh the benefits and it's better off to just always render it fresh.
+    //一个节点要成为根节点，那么要满足以下条件：
+    //1、静态节点，并且有子节点，
+    //2、子节点不能仅为一个文本节点
     if (node.static && node.children.length && !(
       node.children.length === 1 &&
       node.children[0].type === 3
@@ -100,6 +117,7 @@ function markStaticRoots (node: ASTNode, isInFor: boolean) {
     } else {
       node.staticRoot = false
     }
+    //循环递归标记
     if (node.children) {
       for (let i = 0, l = node.children.length; i < l; i++) {
         markStaticRoots(node.children[i], isInFor || !!node.for)

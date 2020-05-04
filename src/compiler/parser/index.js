@@ -57,6 +57,9 @@ let platformMustUseProp
 let platformGetTagNamespace
 let maybeComponent
 
+/**
+ * 创建标签元素的AST模型对象
+ */
 export function createASTElement (
   tag: string,
   attrs: Array<ASTAttr>,
@@ -74,9 +77,8 @@ export function createASTElement (
 }
 
 /**
- * Convert HTML string to AST.
  * 把html字符串转成AST（抽象语法树）
- * AST: 一个含有type tag attrsList children等属性的对象，用来描述html
+ * AST: 一个含有type tag attrsList children parent等属性的对象，用来描述html
  */
 export function parse (
   template: string,
@@ -94,10 +96,13 @@ export function parse (
   preTransforms = pluckModuleFunction(options.modules, 'preTransformNode')
   postTransforms = pluckModuleFunction(options.modules, 'postTransformNode')
 
+  // 分隔符
   delimiters = options.delimiters
 
   const stack = []
+  // 保留空格
   const preserveWhitespace = options.preserveWhitespace !== false
+  // 空格设置
   const whitespaceOption = options.whitespace
   // 定义AST模型对象
   let root
@@ -106,6 +111,9 @@ export function parse (
   let inPre = false
   let warned = false
 
+  /**
+   * 报一次错
+   */
   function warnOnce (msg, range) {
     if (!warned) {
       warned = true
@@ -113,6 +121,9 @@ export function parse (
     }
   }
 
+  /**
+   * 把没有闭合的标签闭合
+   */
   function closeElement (element) {
     trimEndingWhitespace(element)
     if (!inVPre && !element.processed) {
@@ -173,6 +184,9 @@ export function parse (
     }
   }
 
+  /**
+   * 修剪最后的空白节点
+   */
   function trimEndingWhitespace (el) {
     // remove trailing whitespace node
     if (!inPre) {
@@ -187,6 +201,12 @@ export function parse (
     }
   }
 
+  /**
+   * 根节点限制
+   * 不允许使用slot或者template节点作为组件根节点
+   * 不允许在根节点使用v-for
+   * 这是因为vue不允许根节点有多个
+   */
   function checkRootConstraints (el) {
     if (el.tag === 'slot' || el.tag === 'template') {
       warnOnce(
@@ -212,19 +232,24 @@ export function parse (
     canBeLeftOpenTag: options.canBeLeftOpenTag,
     shouldDecodeNewlines: options.shouldDecodeNewlines,
     shouldDecodeNewlinesForHref: options.shouldDecodeNewlinesForHref,
-    shouldKeepComment: options.comments,
+    shouldKeepComment: options.comments, // 当设为 true 时，将会保留且渲染模板中的 HTML 注释。默认行为是舍弃它们。
     outputSourceRange: options.outputSourceRange,
+    // 标准起始标签处理
     start (tag, attrs, unary, start, end) {
       // check namespace.
       // inherit parent ns if there is one
+      // 检查命名空间
+      // 如果有父级就直接继承，否自直接获取该tag的命名空间
       const ns = (currentParent && currentParent.ns) || platformGetTagNamespace(tag)
 
       // handle IE svg bug
       /* istanbul ignore if */
+      // IE浏览器的svg元素bug修复
       if (isIE && ns === 'svg') {
         attrs = guardIESVGBug(attrs)
       }
 
+      // 1、创建ASTelement
       let element: ASTElement = createASTElement(tag, attrs, currentParent)
       if (ns) {
         element.ns = ns
@@ -264,6 +289,7 @@ export function parse (
       }
 
       // apply pre-transforms
+      // 2、以下是处理属性中各类指令，从attrsList中删除相关的属性，
       for (let i = 0; i < preTransforms.length; i++) {
         element = preTransforms[i](element, options) || element
       }
@@ -286,33 +312,43 @@ export function parse (
         processOnce(element)
       }
 
+      // 3、构建AST模型树
       if (!root) {
+        // 如果是第一个元素，就设置其为根元素
         root = element
         if (process.env.NODE_ENV !== 'production') {
           checkRootConstraints(root)
         }
       }
 
+      // 4、非单元素，将元素push到stack数组，
+      // 对于非单元素，将当前的AST element push到stack数组(注意与上面的stack的区别，两者保存的对象不同，也是为后面的结束进行闭环准备)。对于单元素，调用closeElement做结束处理。
       if (!unary) {
         currentParent = element
         stack.push(element)
       } else {
+        // 否则将这个元素闭合
         closeElement(element)
       }
     },
-
+    // 解析到结束标签，则为该标签的元素对象做闭环处理
     end (tag, start, end) {
+      // 从AST中查找该标签的模型对象
       const element = stack[stack.length - 1]
       // pop stack
+      // stack中删除该模型模型对象，并变更当前的currentParent
       stack.length -= 1
       currentParent = stack[stack.length - 1]
       if (process.env.NODE_ENV !== 'production' && options.outputSourceRange) {
         element.end = end
       }
+      // 关闭
       closeElement(element)
     },
-
+    // 文本节点(字符)处理
+    // 将text作为所属元素的child，纳入到AST模型树
     chars (text: string, start: number, end: number) {
+      // 如果文本节点没有父级节点就报错
       if (!currentParent) {
         if (process.env.NODE_ENV !== 'production') {
           if (text === template) {
@@ -331,12 +367,14 @@ export function parse (
       }
       // IE textarea placeholder bug
       /* istanbul ignore if */
+      // IE的特殊处理
       if (isIE &&
         currentParent.tag === 'textarea' &&
         currentParent.attrsMap.placeholder === text
       ) {
         return
       }
+      // 获取text内容
       const children = currentParent.children
       if (inPre || text.trim()) {
         text = isTextTag(currentParent) ? text : decodeHTMLCached(text)
@@ -354,6 +392,7 @@ export function parse (
       } else {
         text = preserveWhitespace ? ' ' : ''
       }
+      // 创建AST模型
       if (text) {
         if (!inPre && whitespaceOption === 'condense') {
           // condense consecutive whitespaces into single space
@@ -362,6 +401,8 @@ export function parse (
         let res
         let child: ?ASTNode
         if (!inVPre && text !== ' ' && (res = parseText(text, delimiters))) {
+        // 包含表达式的test
+        // parseText 解析文本中的表达式
           child = {
             type: 2,
             expression: res.expression,
@@ -369,6 +410,7 @@ export function parse (
             text
           }
         } else if (text !== ' ' || !children.length || children[children.length - 1].text !== ' ') {
+          //纯文本的text
           child = {
             type: 3,
             text

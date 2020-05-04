@@ -36,6 +36,9 @@ export const isSVG = makeMap(
   true
 )
 
+/**
+ * 判断是否是'pre'字符串
+ */
 export const isPreTag = (tag: ?string): boolean => tag === 'pre'
 
 /**

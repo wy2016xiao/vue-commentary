@@ -18,6 +18,8 @@ export const createCompiler = createCompilerCreator(function baseCompile (
   // 1、parse，将templat转成AST模型
   const ast = parse(template.trim(), options)
   // 2、optimize，标注静态节点
+  // 静态节点就是那些永远不会变化的节点
+  // 重新渲染时，作为常量，无需创建新节点
   if (options.optimize !== false) {
     optimize(ast, options)
   }

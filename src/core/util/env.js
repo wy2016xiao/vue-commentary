@@ -3,6 +3,9 @@
  * 关于环境的工具库
  */
 // can we use __proto__?
+/**
+ * 是否能使用__proto__属性
+ */
 export const hasProto = '__proto__' in {}
 
 // Browser environment sniffing

@@ -7,14 +7,16 @@ import config from '../config'
 let uid = 0
 
 /**
- * A dep is an observable that can have multiple
- * directives subscribing to it.
- * dep是可以有多个指令订阅的可观察的
+ * 发布器
+ *
+ * @date 2020-05-05
+ * @export
+ * @class Dep
  */
 export default class Dep {
-  static target: ?Watcher;
-  id: number;
-  subs: Array<Watcher>;
+  static target: ?Watcher; // 当前的watcher
+  id: number; // 属性
+  subs: Array<Watcher>;  // watcher类集合
 
   constructor () {
     this.id = uid++
@@ -29,6 +31,8 @@ export default class Dep {
     remove(this.subs, sub)
   }
 
+  // Dep.target为当前的watcher
+  // 将当前的watcher添加到相应的发布器Dep，进行依赖收集
   depend () {
     if (Dep.target) {
       Dep.target.addDep(this)

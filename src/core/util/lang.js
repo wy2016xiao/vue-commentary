@@ -29,14 +29,22 @@ export function def (obj: Object, key: string, val: any, enumerable?: boolean) {
 
 /**
  * Parse simple path.
+ * 返回一个函数,这个函数可以
+ * 解析简单路径,获取最后的对象值
+ * e.g.
+ * parsePath(a.b.c.d)(q)
+ * 得到q.a.b.c.d
  */
 const bailRE = new RegExp(`[^${unicodeRegExp.source}.$_\\d]`)
 export function parsePath (path: string): any {
+  // 有unicode直接返回undefined
   if (bailRE.test(path)) {
     return
   }
+  // 有可能是'a.b.c'形式
   const segments = path.split('.')
   return function (obj) {
+    // 循环找到最后的那个属性,obj最后就是那个值
     for (let i = 0; i < segments.length; i++) {
       if (!obj) return
       obj = obj[segments[i]]

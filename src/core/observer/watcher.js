@@ -31,27 +31,29 @@ export default class Watcher {
   expression: string;
   cb: Function;
   id: number;
-  deep: boolean;
+  deep: boolean; // 是否需要深度监听
   user: boolean;
-  lazy: boolean;
-  sync: boolean;
+  lazy: boolean; // input输入框会由input触发改为onchange触发
+  // 也就是时失去焦点时触发
+  sync: boolean; // 更新时是否需要同步执行
   dirty: boolean;
   active: boolean;
-  deps: Array<Dep>;
-  newDeps: Array<Dep>;
-  depIds: SimpleSet;
-  newDepIds: SimpleSet;
+  deps: Array<Dep>; // 该watcher对应的维护的发布器数组
+  newDeps: Array<Dep>; // 该watcher对应的维护的发布器数组。
+  depIds: SimpleSet; // 该watcher对应的维护的发布器id
+  newDepIds: SimpleSet; // 该watcher对应的维护的发布器id
   before: ?Function;
   getter: Function;
   value: any;
 
   constructor (
     vm: Component,
-    expOrFn: string | Function,
-    cb: Function,
+    expOrFn: string | Function, // 待观察的表达式
+    cb: Function, // 回调函数，更新的时候调用
     options?: ?Object,
     isRenderWatcher?: boolean
   ) {
+    // 1.初始化变量
     this.vm = vm
     if (isRenderWatcher) {
       vm._watcher = this
@@ -79,9 +81,11 @@ export default class Watcher {
       ? expOrFn.toString()
       : ''
     // parse expression for getter
+    // 如果是function类型,直接将其设置为getter方法
     if (typeof expOrFn === 'function') {
       this.getter = expOrFn
     } else {
+      // 否则就是个对象,需要从中间解析出用户设置的getter
       this.getter = parsePath(expOrFn)
       if (!this.getter) {
         this.getter = noop

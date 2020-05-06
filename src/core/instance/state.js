@@ -145,6 +145,12 @@ function initProps (vm: Component, propsOptions: Object) {
   toggleObserving(true)
 }
 
+/**
+ *
+ *
+ * @date 2020-05-05
+ * @param {Component} vm
+ */
 function initData (vm: Component) {
   let data = vm.$options.data
   // 保存data到vm._data中，判断data是否是function类型，对于组件必须是function

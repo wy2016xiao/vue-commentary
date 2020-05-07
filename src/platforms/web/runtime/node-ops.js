@@ -1,5 +1,7 @@
 /* @flow */
-
+/**
+ * dom节点相关的工具函数
+ */
 import { namespaceMap } from 'web/util/index'
 
 /**

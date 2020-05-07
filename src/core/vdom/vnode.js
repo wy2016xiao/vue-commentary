@@ -48,7 +48,8 @@ export default class VNode {
   ) {
     // 当前节点标签名
     this.tag = tag
-    // 当前节点对应的对象，包含了具体的一些数据信息，
+    // 当前节点html标签上面定义的属性
+    // id class show key等等
     // 是一个VNodeData类型，可以参考VNodeData类型中的数据信息
     this.data = data
     // 当前节点的子节点，一个数组

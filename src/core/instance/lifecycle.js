@@ -158,7 +158,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
 }
 
 /**
- *
+ * 挂载组件
  * @date 2020-04-21
  * @export
  * @param {Component} vm
@@ -221,6 +221,8 @@ export function mountComponent (
     // 定义updateComponent，
     // vm._render将render表达式转化为vnode，
     // vm._update将vnode渲染成实际的dom节点
+
+    // 这里在render时就会触发html中你写的变量的getter
     updateComponent = () => {
       vm._update(vm._render(), hydrating)
     }

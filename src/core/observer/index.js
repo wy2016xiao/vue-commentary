@@ -34,6 +34,11 @@ export function toggleObserving (value: boolean) {
  * object's property keys into getter/setters that
  * collect dependencies and dispatch updates.
  * Observer类能给目标对象的属性名附加getter/setter来收集依赖和发布更新
+ * 
+ * Observer 主要是用来监视一个对象的变化，比如在 data 中存在一个对象成员
+ * 直接给该对象成员添加属性并不会触发任何钩子函数，但是这个对象又是数据的一部分
+ * 也就是说该对象发生变化也会导致DOM发生改变
+ * 因此要用 Observer 来监视一个对象的变化并且在变化时通知与其相关的 Watcher 来运行回调函数。
  */
 export class Observer {
   value: any;
@@ -124,6 +129,12 @@ function copyAugment (target: Object, src: Object, keys: Array<string>) {
  * 3.不可扩展
  * 4._isVue属性是真值
  * 
+ * 这个函数主要是用来动态返回一个 Observer
+ * 首先判断value如果不是对象则返回，
+ * 然后检测该对象是否已经有 Observer，
+ * 有则直接返回，
+ * 否则新建并将 Observer 保存在该对象的 ob 属性中（在构造函数中进行）。
+ * 
  * @date 2020-02-04
  * @export
  * @param {*} value - 将被观察的对象，就是传入的data
@@ -158,7 +169,7 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
 
 /**
  * Define a reactive property on an Object.
- * 定义一个对象的属性为响应式属性
+ * 数据劫持,定义一个对象的属性为响应式属性
  * @date 2020-04-20
  * @export
  * @param {Object} obj - 被定义的对象

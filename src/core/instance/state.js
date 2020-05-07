@@ -232,7 +232,7 @@ export function getData (data: Function, vm: Component): any {
 const computedWatcherOptions = { lazy: true }
 
 /**
- *
+ * 初始化计算属性
  *
  * @date 2020-04-21
  * @param {Component} vm
@@ -272,12 +272,9 @@ function initComputed (vm: Component, computed: Object) {
     // component-defined computed properties are already defined on the
     // component prototype. We only need to define computed properties defined
     // at instantiation here.
-    // 组件定义的计算属性已在
-    // 组件原型。我们只需要定义已定义的计算属性
-    // 在实例化的时候。
-    // QUESTION: 不是很懂
+    // 在组件上定义的计算属性如果已经在组件的别的地方存在,则给他报错
+    // 否则绑定到vm对象上
     if (!(key in vm)) {
-      // 绑定到vm对象上，计算属性值
       defineComputed(vm, key, userDef)
     } else if (process.env.NODE_ENV !== 'production') {
       if (key in vm.$data) {
@@ -290,7 +287,7 @@ function initComputed (vm: Component, computed: Object) {
 }
 
 /**
- *
+ * 将computed定义的属性绑定到实例对象上
  *
  * @date 2020-04-21
  * @export

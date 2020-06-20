@@ -566,7 +566,8 @@ export function createPatchFunction (backend) {
             canMove && nodeOps.insertBefore(parentElm, vnodeToMove.elm, oldStartVnode.elm)
           } else {
             // same key but different element. treat as new element
-            //相同的key，但节点元素不同，以ns为基础创建一个ele元素并插入到oldStartVnode前
+            //相同的key，但节点元素不同，和没有相同节点一样.
+            // 以ns为基础创建一个ele元素并插入到oldStartVnode前
             createElm(newStartVnode, insertedVnodeQueue, parentElm, oldStartVnode.elm, false, newCh, newStartIdx)
           }
         }
@@ -704,18 +705,20 @@ export function createPatchFunction (backend) {
     }
     //3、比较子节点
     if (isUndef(vnode.text)) {//3.1 非text节点
-      if (isDef(oldCh) && isDef(ch)) {//新，旧子节点存在
+      if (isDef(oldCh) && isDef(ch)) {//新的有子节点,旧的没有
         // 新旧节点不同,递归调用updateChildren继续比较
         if (oldCh !== ch) updateChildren(elm, oldCh, ch, insertedVnodeQueue, removeOnly)
-      } else if (isDef(ch)) {//新子节点存在，旧子节点不存在，添加新节点
+      } else if (isDef(ch)) {
+        // 新子节点存在，旧子节点不存在，添加新节点
+        // 如果有文本内容,先清空文本内容
+        // 然后再加入新节点
         if (process.env.NODE_ENV !== 'production') {
           checkDuplicateKeys(ch)
         }
-        // 重置一下textcontent
         if (isDef(oldVnode.text)) nodeOps.setTextContent(elm, '')
-        // 添加新节点
         addVnodes(elm, null, ch, 0, ch.length - 1, insertedVnodeQueue)
-      } else if (isDef(oldCh)) {//旧子节点存在，新子节点不存在，删除旧节点
+      } else if (isDef(oldCh)) {
+        // 旧的有子节点,新的没有子节点,直接删除子节点
         removeVnodes(elm, oldCh, 0, oldCh.length - 1)
       } else if (isDef(oldVnode.text)) {//旧节点为text节点，则设置为空
         nodeOps.setTextContent(elm, '')

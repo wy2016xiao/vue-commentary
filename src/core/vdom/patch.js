@@ -33,8 +33,8 @@ export const emptyNode = new VNode('', {}, [])
 const hooks = ['create', 'activate', 'update', 'remove', 'destroy']
 
 /**
- * 判断两个节点是否相同
- *
+ * 判断两个节点是否相同,无需完全相同
+ * key tag isComment !!data input-type
  * @date 2020-05-07
  * @param {*} a
  * @param {*} b
@@ -197,7 +197,7 @@ export function createPatchFunction (backend) {
       // associated DOM element for it.
       //这个vnode是在之前的渲染中使用的!
       //现在它被用作一个新节点，覆盖它的elm会导致
-      //当它被用作插入时，可能会出现补丁错误
+      //当它被用作插入时，可能会出现patch错误
       //引用节点。相反，我们在创建之前按需克隆节点
       //关联的DOM元素。
       vnode = ownerArray[index] = cloneVNode(vnode)
@@ -421,14 +421,19 @@ export function createPatchFunction (backend) {
     }
   }
 
+  /**
+   * 删除node,进行destroy相关操作
+   */
   function invokeDestroyHook (vnode) {
     let i, j
     const data = vnode.data
     if (isDef(data)) {
+      // 有定义hook或者destroy钩子就直接调用
       if (isDef(i = data.hook) && isDef(i = i.destroy)) i(vnode)
       for (i = 0; i < cbs.destroy.length; ++i) cbs.destroy[i](vnode)
     }
     if (isDef(i = vnode.children)) {
+      // 递归
       for (j = 0; j < vnode.children.length; ++j) {
         invokeDestroyHook(vnode.children[j])
       }
@@ -552,7 +557,7 @@ export function createPatchFunction (backend) {
         idxInOld = isDef(newStartVnode.key)
           ? oldKeyToIdx[newStartVnode.key]
           : findIdxInOld(newStartVnode, oldCh, oldStartIdx, oldEndIdx)
-        if (isUndef(idxInOld)) { // New element
+        if (isUndef(idxInOld)) { 
           // 没有相同节点，证明是个新的vnode
           // 将newStartVnode插入到oldStartVnode前
           createElm(newStartVnode, insertedVnodeQueue, parentElm, oldStartVnode.elm, false, newCh, newStartIdx)
@@ -566,7 +571,7 @@ export function createPatchFunction (backend) {
             canMove && nodeOps.insertBefore(parentElm, vnodeToMove.elm, oldStartVnode.elm)
           } else {
             // same key but different element. treat as new element
-            //相同的key，但节点元素不同，和没有相同节点一样.
+            // 相同的key，但节点元素不同，和没有相同节点一样.
             // 以ns为基础创建一个ele元素并插入到oldStartVnode前
             createElm(newStartVnode, insertedVnodeQueue, parentElm, oldStartVnode.elm, false, newCh, newStartIdx)
           }
@@ -863,16 +868,17 @@ export function createPatchFunction (backend) {
    * vm.__patch__(vm.$el, vnode, hydrating, false )
    * vm.__patch__(prevVnode, vnode)
    * @date 2020-04-23
-   * @param {*} oldVnode
-   * @param {*} vnode
-   * @param {*} hydrating
+   * @param {*} oldVnode - 老的虚拟dom
+   * @param {*} vnode - 新的虚拟dom
+   * @param {*} hydrating - 是否开启激活模式
    * @param {*} removeOnly
    * @returns 
    */
   return function patch (oldVnode, vnode, hydrating, removeOnly) {
     // 如果没有定义新vnode,但有oldVnode
     // 证明节点被销毁了
-    // 对老节点调用destroy hook
+    // 对老节点调用destroy hook钩子
+    // 虚拟dom的remove在后面进行
     if (isUndef(vnode)) {
       if (isDef(oldVnode)) invokeDestroyHook(oldVnode)
       return
@@ -887,15 +893,16 @@ export function createPatchFunction (backend) {
       // empty mount (likely as component), create new root element
       // 没有oldVnode，证明初次渲染
       isInitialPatch = true
-      // 创建一个老节点的实际dom节点
+      // 创建新的dom节点
       createElm(vnode, insertedVnodeQueue)
     } else {
-      // 2.oldVnode存在的话
+      // 2.新老Vnode都存在
       // 判断oldVnode这个参数是不是一个dom元素实例
+      // nodeType 元素类型
       const isRealElement = isDef(oldVnode.nodeType)
       if (!isRealElement && sameVnode(oldVnode, vnode)) {
         // 不是一个dom实例(那就是一个vnode了)
-        // 并且新老虚拟节点一样
+        // 并且新老虚拟节点形似
         // 去patchVnode
         patchVnode(oldVnode, vnode, insertedVnodeQueue, null, null, removeOnly)
       } else {

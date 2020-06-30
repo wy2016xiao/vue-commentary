@@ -9,7 +9,7 @@
  */
 export default class VNode {
   tag: string | void;
-  data: VNodeData | void;
+  data: VNodeData | void; // 标签上的属性  id  class等
   children: ?Array<VNode>;
   text: string | void;
   elm: Node | void;
@@ -38,7 +38,7 @@ export default class VNode {
 
   constructor (
     tag?: string,
-    data?: VNodeData,
+    data?: VNodeData, // 
     children?: ?Array<VNode>,
     text?: string,
     elm?: Node,

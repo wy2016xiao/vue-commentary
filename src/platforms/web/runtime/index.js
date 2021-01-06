@@ -41,15 +41,15 @@ extend(Vue.options.directives, platformDirectives)
 extend(Vue.options.components, platformComponents)
 
 // install platform patch function
-// 装载平台修补函数
+// 装载平台的核心函数 patch函数
 Vue.prototype.__patch__ = inBrowser ? patch : noop
 
-// public mount method
 // 公共mount方法
 Vue.prototype.$mount = function (
-  el?: string | Element,
+  el?: string | Element, // 一个DOM实例或者'#id'这样的字符串
   hydrating?: boolean // 服务端渲染相关
 ): Component {
+  // 找到那个元素
   el = el && inBrowser ? query(el) : undefined
   return mountComponent(this, el, hydrating)
 }

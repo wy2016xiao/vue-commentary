@@ -49,14 +49,16 @@ export function createElement (
   normalizationType: any,
   alwaysNormalize: boolean
 ): VNode | Array<VNode> {
-  // 处理data的入参，当没有data属性的情况下，这个参数表示的是children
-  // 主要是怕用户传了个奇怪的data,那就默认用户没有传data
+  // 参数重载
+  // 处理data的入参，如果data不符合规范(是数组或简单数据格式)就视作没有
+  // 主要是怕用户传了个奇怪的data,那就默认用户没有传data,吧所有参数往前移动
   if (Array.isArray(data) || isPrimitive(data)) {
     normalizationType = children
     children = data
     data = undefined
   }
   // 是否定义了永远标准化
+  // CONFUSING: 这个变量是啥意思
   if (isTrue(alwaysNormalize)) {
     normalizationType = ALWAYS_NORMALIZE
   }
@@ -83,6 +85,8 @@ export function _createElement (
   normalizationType?: number
 ): VNode | Array<VNode> {
   // 避免使用被观察的对象作为vnode的选项对象
+  // 即vnode不可以是一个响应式的
+  // 会返回一个注释节点(空节点)
   if (isDef(data) && isDef((data: any).__ob__)) {
     process.env.NODE_ENV !== 'production' && warn(
       `Avoid using observed data object as vnode data: ${JSON.stringify(data)}\n` +
@@ -92,17 +96,22 @@ export function _createElement (
     return createEmptyVNode()
   }
   // object syntax in v-bind
+  // is属性绑定
   if (isDef(data) && isDef(data.is)) {
     tag = data.is
   }
   if (!tag) {
     // in case of component :is set to falsy value
+    // 也有一种情况是is的值是个假值
+    // 此时也返回一个空vnode   即注释节点
     return createEmptyVNode()
   }
   // warn against non-primitive key
+  // key属性的值不是一个简单数据类型
   if (process.env.NODE_ENV !== 'production' &&
     isDef(data) && isDef(data.key) && !isPrimitive(data.key)
   ) {
+    // 没有使用__WEEX__或者key中没有@binding的情况下,进行警告
     if (!__WEEX__ || !('@binding' in data.key)) {
       warn(
         'Avoid using non-primitive value as key, ' +
@@ -112,9 +121,10 @@ export function _createElement (
     }
   }
   // support single function children as default scoped slot
-  // 函数式子节点
-  if (Array.isArray(children) &&
-    typeof children[0] === 'function'
+  // 函数式子节点,使用渲染函数时会触发
+  // 把children长度变为零
+  if (Array.isArray(children) && // children是个数组
+    typeof children[0] === 'function' // 第一个children是个函数
   ) {
     data = data || {}
     data.scopedSlots = { default: children[0] }
@@ -131,8 +141,9 @@ export function _createElement (
   // 创建VNode
   if (typeof tag === 'string') {
     let Ctor
+    // ns: namespace
     ns = (context.$vnode && context.$vnode.ns) || config.getTagNamespace(tag)
-    // 判断是否是内置标签
+    // 判断是否是html协议的保留标签
     if (config.isReservedTag(tag)) {
       // 保留字段规整
       // 创建一个普通的VNode，初始化tag，data，children等变量

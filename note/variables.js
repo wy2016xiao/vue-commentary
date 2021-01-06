@@ -15,7 +15,14 @@ const options = {
     type: Boolean,
     desc: '强制使用应用程序的激活模式',
     sup: 'https://ssr.vuejs.org/zh/guide/hydration.html'
-  }
+  },
+  _parentVnode: {
+
+  },
+  parent: {},
+  _parentListeners: {},
+  _renderChildren: {},
+  _componentTag: {},
 
 }
 

@@ -18,7 +18,9 @@ export function initMixin (Vue: Class<Component>) {
     const vm: Component = this
     /**
      * 第一部分
-     * 初始化部分属性
+     * 1.初始化部分属性
+     * _uid _isVue
+     * 2.开启性能检测
      */
     // 每个vue实例都会有一个唯一的uid用来区分不同的vue实例
     // uid只增不减，全局js变量
@@ -26,8 +28,8 @@ export function initMixin (Vue: Class<Component>) {
 
     let startTag, endTag
     /* istanbul ignore if */
-    // performance-全局配置 是否开启性能检测
-    // 开启性能检测则进行时间戳记录
+    // config.performance 是否开启性能检测
+    // 开启性能检测且非生产环境则进行时间戳记录
     if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
       startTag = `vue-perf-start:${vm._uid}`
       endTag = `vue-perf-end:${vm._uid}`
@@ -44,6 +46,7 @@ export function initMixin (Vue: Class<Component>) {
      * 合并相关options
      */
     if (options && options._isComponent) {
+      // 当实例作为组件被生成时,会在options中加上_isComponent属性用作标签
       // 如果是组件的话
       // 优化内部组件实例化
       // 由于动态选项合并很慢，所以内部组件需要特殊处理
@@ -67,6 +70,7 @@ export function initMixin (Vue: Class<Component>) {
     if (process.env.NODE_ENV !== 'production') {
       // 开发环境
       // 代理功能初始化，设置vm._renderProxy
+      // 该功能其实主要是用来做一个非法访问属性的警告
       initProxy(vm)
     } else {
       // 生产环境
@@ -77,10 +81,11 @@ export function initMixin (Vue: Class<Component>) {
     // _self保存vm本身
     vm._self = vm
 
-    // 初始化vue实例的一系列属性
+    // 初始化vue实例的一系列属性,给到默认属性
     // $parent $root $children $refs _watcher _inactive _directInactive _isMounted 
     // _isDestroyed _isBeingDestroyed
     initLifecycle(vm)
+    // 初始化_events _hasHookEvent变量
     // 存储父组件绑定的当前子组件的事件，保存到vm._events。
     initEvents(vm)
     // 定义vm._c和 vm.$createElement等方法
@@ -89,7 +94,9 @@ export function initMixin (Vue: Class<Component>) {
     // 挨着调用用户定义的生命周期钩子函数和指令
     callHook(vm, 'beforeCreate')
     // 通过逐级查找，从父级provide中获取子级组件inject定义的属性值，并增加对该属性的监听
+    // 只设置setter和getter不实例化__ob__
     initInjections(vm) 
+    // initProps initMethods initData initComputed initWatch
     // 是对prop，method，data，computed，watch的初始化，增加对定义属性的监听
     initState(vm)
     // 把用户定义的provide赋值到_provided上
@@ -115,21 +122,25 @@ export function initMixin (Vue: Class<Component>) {
 
 
 /**
- * 当vm为组件时被调用
+ * 在src/core/instance/index.js initMixin()时,如果实例为组件则调用
+ * 
  * 初始化组件实例
  * 给传进来的vm实例加上了parent propsData等属性
  * @date 2020-01-13
  * @export
- * @param {Component} vm
- * @param {InternalComponentOptions} options
+ * @param {Component} vm - vue实例
+ * @param {InternalComponentOptions} options - 初始化时的参数项
  */
 export function initInternalComponent (vm: Component, options: InternalComponentOptions) {
+  // 取Vue构造函数的options属性给实例的$options属性
+  // CONFUSING: vm.constructor.options是哪里来的
   const opts = vm.$options = Object.create(vm.constructor.options)
   // doing this because it's faster than dynamic enumeration.
   const parentVnode = options._parentVnode
   opts.parent = options.parent
   opts._parentVnode = parentVnode
 
+  // CONFUSING: parentVnode.componentOptions
   const vnodeComponentOptions = parentVnode.componentOptions
   opts.propsData = vnodeComponentOptions.propsData
   opts._parentListeners = vnodeComponentOptions.listeners
@@ -144,7 +155,7 @@ export function initInternalComponent (vm: Component, options: InternalComponent
 
 /**
  * 一个递归函数
- * 一句话总结，resolveConstructorOptions返回构造函数的options
+ * 返回构造函数的options
  * @date 2020-01-13
  * @export
  * @param {Class<Component>} Ctor
@@ -155,7 +166,11 @@ export function resolveConstructorOptions (Ctor: Class<Component>) {
   let options = Ctor.options
   // 用Vue.extend构造子类时，就会添加一个super属性
   if (Ctor.super) {
+    // 如果有继承
+    // 先取祖先的options为superOptions
     const superOptions = resolveConstructorOptions(Ctor.super)
+    // 对继承的实例的选项做一个缓存
+    // CONFUSING: 这里祖先的options和自身的superOptions为什么会不同?
     const cachedSuperOptions = Ctor.superOptions
     if (superOptions !== cachedSuperOptions) {
       // super option changed,

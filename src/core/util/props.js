@@ -35,36 +35,43 @@ export function validateProp (
   vm?: Component
 ): any {
   const prop = propOptions[key]
-  // absent表示没有这个属性
+  // absent表示这个属性没有传值
   const absent = !hasOwn(propsData, key)
   let value = propsData[key]
-  // boolean casting
+
+  // 1.格式化prop值为布尔类型
+  // 是否是布尔类型或者数组类型成员有布尔类型
   const booleanIndex = getTypeIndex(Boolean, prop.type)
   if (booleanIndex > -1) {
     if (absent && !hasOwn(prop, 'default')) {
+      // 如果没收到值也没有设置默认值,就给个false默认值
       value = false
     } else if (value === '' || value === hyphenate(key)) {
-      // only cast empty string / same name to boolean if
-      // boolean has higher priority
+      // 如果是空字符串或者是属性名的连字符写法
+      // 连字符写法通常是因为忘了写值<div data-value>
       const stringIndex = getTypeIndex(String, prop.type)
       if (stringIndex < 0 || booleanIndex < stringIndex) {
+        // 如果不是字符串类型或者数组类型中布尔类型在字符串类型前出现,返回默认值true
         value = true
       }
     }
   }
-  // check default value
+  
+  // 2.父组件没有设置值
   if (value === undefined) {
+    // 如果父组件没有设置值,取用户定义的default默认值
     value = getPropDefaultValue(vm, prop, key)
-    // since the default value is a fresh copy,
-    // make sure to observe it.
+    
+    // 切换一下观察功能开关
     const prevShouldObserve = shouldObserve
     toggleObserving(true)
+    // 观察该值
+    // 基本上只会观察函数,其他的不是对象或者实例,都直接返回空
     observe(value)
     toggleObserving(prevShouldObserve)
   }
   if (
     process.env.NODE_ENV !== 'production' &&
-    // skip validation for weex recycle-list child component props
     !(__WEEX__ && isObject(value) && ('@binding' in value))
   ) {
     assertProp(prop, key, value, vm, absent)
@@ -73,15 +80,15 @@ export function validateProp (
 }
 
 /**
- * Get the default value of a prop.
+ * 获取prop
  */
 function getPropDefaultValue (vm: ?Component, prop: PropOptions, key: string): any {
-  // no default, return undefined
+  // 没有默认值,返回undefined
   if (!hasOwn(prop, 'default')) {
     return undefined
   }
   const def = prop.default
-  // warn against non-factory defaults for Object & Array
+  // 对象类型默认值必须使用函数形式设置
   if (process.env.NODE_ENV !== 'production' && isObject(def)) {
     warn(
       'Invalid default value for prop "' + key + '": ' +
@@ -90,23 +97,31 @@ function getPropDefaultValue (vm: ?Component, prop: PropOptions, key: string): a
       vm
     )
   }
-  // the raw prop value was also undefined from previous render,
-  // return previous default value to avoid unnecessary watcher trigger
+
   if (vm && vm.$options.propsData &&
-    vm.$options.propsData[key] === undefined &&
-    vm._props[key] !== undefined
+    vm.$options.propsData[key] === undefined && // 父组件设置了该prop的值
+    vm._props[key] !== undefined // CONFUSING: 这里怎么来的
   ) {
+    // 返回这个值
     return vm._props[key]
   }
-  // call factory function for non-Function types
-  // a value is Function if its prototype is function even across different execution context
+
+  // 如果是函数类型的默认值并且type不是Function则调用后返回函数的返回值
+  // 否则直接返回该函数
   return typeof def === 'function' && getType(prop.type) !== 'Function'
     ? def.call(vm)
     : def
 }
 
 /**
- * Assert whether a prop is valid.
+ *
+ *
+ * @date 2021-01-04
+ * @param {PropOptions} prop
+ * @param {string} name - key
+ * @param {*} value
+ * @param {?Component} vm
+ * @param {boolean} absent - 父组件是否有传值
  */
 function assertProp (
   prop: PropOptions,
@@ -199,6 +214,15 @@ function isSameType (a, b) {
   return getType(a) === getType(b)
 }
 
+/**
+ * 判断传入的数据是否符合传入的类型
+ * 如果是数组,返回数组中第一个类型相符的成员的index
+ *
+ * @date 2021-01-04
+ * @param {*} type
+ * @param {*} expectedTypes
+ * @returns {number}
+ */
 function getTypeIndex (type, expectedTypes): number {
   if (!Array.isArray(expectedTypes)) {
     return isSameType(expectedTypes, type) ? 0 : -1

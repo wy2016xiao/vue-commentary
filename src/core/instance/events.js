@@ -9,6 +9,9 @@ import {
 } from '../util/index'
 import { updateListeners } from '../vdom/helpers/index'
 
+/**
+ * 初始化_events _hasHookEvent变量
+ */
 export function initEvents (vm: Component) {
   vm._events = Object.create(null)
   // 标识是否有hook:样式的钩子事件
@@ -66,6 +69,14 @@ export function updateComponentListeners (
   target = undefined
 }
 
+/**
+ * 定义了事件相关的方法
+ * $on $once $off $emit
+ *
+ * @date 2021-01-06
+ * @export
+ * @param {Class<Component>} Vue
+ */
 export function eventsMixin (Vue: Class<Component>) {
   const hookRE = /^hook:/
   /**
@@ -86,8 +97,6 @@ export function eventsMixin (Vue: Class<Component>) {
       // 这样方便在不同的地方对相同的进行重复监听，不会覆盖掉原来的监听
       // 会依次触发监听回调
       (vm._events[event] || (vm._events[event] = [])).push(fn)
-      // optimize hook:event cost by using a boolean flag marked at registration
-      // instead of a hash lookup
       // 如果该事件是个hook钩子事件
       // 标记一下实例，表示监听列表里面有个hook钩子事件
       if (hookRE.test(event)) {
@@ -114,11 +123,6 @@ export function eventsMixin (Vue: Class<Component>) {
       fn.apply(vm, arguments)
     }
     // 这里注册的事件的回调不是你传入的回调
-    // 如果你想要以this.$off(event, fn)形式删掉这个事件
-    // 抱歉，找不到这个fn
-    // 因为这里注册的是on
-    // 所以on.fn = fn
-    // $off的时候如果fn.fn = fn那么也删掉，这样就完美了
     on.fn = fn
     vm.$on(event, on)
     return vm

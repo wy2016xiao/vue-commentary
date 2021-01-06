@@ -8,10 +8,10 @@
  * @class VNode
  */
 export default class VNode {
-  tag: string | void;
+  tag: string | void; // 标签名 div span
   data: VNodeData | void; // 标签上的属性  id  class等
-  children: ?Array<VNode>;
-  text: string | void;
+  children: ?Array<VNode>; // 子节点,VNode数组
+  text: string | void; // 文本节点
   elm: Node | void;
   ns: string | void;
   context: Component | void; // rendered in this component's scope
@@ -66,7 +66,7 @@ export default class VNode {
     this.fnContext = undefined
     this.fnOptions = undefined
     this.fnScopeId = undefined
-    // 节点的key属性，被当做节点的标志，用以优化
+    // 节点的key属性，被当做节点的标志，用以diff优化
     this.key = data && data.key
     // 当前节点对应的组件的options选项
     this.componentOptions = componentOptions

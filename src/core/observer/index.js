@@ -35,10 +35,10 @@ export function toggleObserving (value: boolean) {
  * collect dependencies and dispatch updates.
  * Observer类能给目标对象的属性名附加getter/setter来收集依赖和发布更新
  * 
- * Observer 主要是用来监视一个对象的变化，比如在 data 中存在一个对象成员
+ * Observer 主要是用来初始化对一个对象的监听，比如在 data 中存在一个对象成员
  * 直接给该对象成员添加属性并不会触发任何钩子函数，但是这个对象又是数据的一部分
  * 也就是说该对象发生变化也会导致DOM发生改变
- * 因此要用 Observer 来监视一个对象的变化并且在变化时通知与其相关的 Watcher 来运行回调函数。
+ * 因此要用 Observer 来初始化监视一个对象的变化并且在变化时通知与其相关的 Watcher 来运行回调函数。
  */
 export class Observer {
   value: any;
@@ -55,14 +55,13 @@ export class Observer {
     // 3.对于数组对象，则循环创建Observer对象
     if (Array.isArray(value)) {
       if (hasProto) {
-        // 给数组对象的原型链换成数组对象原型
+        // 给数组对象的原型链换成自己定义的已被劫持的数组对象原型
         protoAugment(value, arrayMethods)
       } else {
         // 没有原型链就手动添加原型方法
-        // options.data Array.prototype Array.prototype的所有key
         copyAugment(value, arrayMethods, arrayKeys)
       }
-      // 对数组成员循环创建Observer对象
+      // 对数组每个成员创建Observer对象
       this.observeArray(value)
     } else {
       // 4.为每个属性注入getter setter方法
@@ -71,10 +70,7 @@ export class Observer {
   }
 
   /**
-   * Walk through all properties and convert them into
-   * getter/setters. This method should only be called when
-   * value type is Object.
-   * 遍历所有属性并且把他们转换成getter/setter
+   * 遍历对象所有属性，全部应用defineReactive方法设置getter setter
    * 这个方法只应该在值为对象时调用
    */
   walk (obj: Object) {
@@ -85,7 +81,7 @@ export class Observer {
   }
 
   /**
-   * Observe a list of Array items.
+   * 给数组的每一个成员使用new Observer()
    */
   observeArray (items: Array<any>) {
     for (let i = 0, l = items.length; i < l; i++) {
@@ -152,11 +148,11 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
     ob = value.__ob__
   } else if (
     // 没有就加一个__ob__属性
-    shouldObserve &&
-    !isServerRendering() &&
-    (Array.isArray(value) || isPlainObject(value)) &&
-    Object.isExtensible(value) &&
-    !value._isVue
+    shouldObserve && // 可观察
+    !isServerRendering() && // 当前不是服务器渲染模式
+    (Array.isArray(value) || isPlainObject(value)) && // 是数组或简单对象
+    Object.isExtensible(value) && // 是否可扩展(是否可以添加新属性)
+    !value._isVue // 不是vue实例
   ) {
     ob = new Observer(value)
   }
@@ -168,7 +164,6 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
 }
 
 /**
- * Define a reactive property on an Object.
  * 数据劫持,定义一个对象的属性为响应式属性
  * @date 2020-04-20
  * @export
@@ -189,7 +184,7 @@ export function defineReactive (
   const dep = new Dep()
   // 获取该属性的描述符
   const property = Object.getOwnPropertyDescriptor(obj, key)
-  // 如果属性不允许被设置就直接返回
+  // 如果属性不允许被设置就直接返回undefined
   if (property && property.configurable === false) {
     return
   }
@@ -251,9 +246,6 @@ export function defineReactive (
 }
 
 /**
- * Set a property on an object. Adds the new property and
- * triggers change notification if the property doesn't
- * already exist.
  * 向响应式对象中添加一个属性，并确保这个新属性同样是响应式的，且触发视图更新。
  * 它必须用于向响应式对象上添加新属性，因为 Vue 无法探测普通的新增属性 
  * (比如 this.myObject.newProperty = 'hi')

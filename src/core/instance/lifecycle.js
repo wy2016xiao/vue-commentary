@@ -21,6 +21,14 @@ import {
 export let activeInstance: any = null
 export let isUpdatingChildComponent: boolean = false
 
+/**
+ * 更新当前活跃实例的值
+ *
+ * @date 2021-01-06
+ * @export
+ * @param {Component} vm - 新的实例,将要替换当前实例
+ * @returns 
+ */
 export function setActiveInstance(vm: Component) {
   const prevActiveInstance = activeInstance
   activeInstance = vm
@@ -47,7 +55,7 @@ export function initLifecycle (vm: Component) {
     while (parent.$options.abstract && parent.$parent) {
       parent = parent.$parent
     }
-    // parent不是为undefined，并且标记位非抽象，通过while循环父组件链，找出第一个非抽象的组件（最顶层，第一代祖宗），并赋值为parent，为该parent的子组件数据添加vm对象，形成一个环形链表
+    // parent不是为undefined，并且标记为非抽象，通过while循环父组件链，找出第一个非抽象的组件（最顶层，第一代祖宗），并赋值为parent，为该parent的子组件数据添加vm对象，形成一个环形链表
     // 这个链表是非抽象组件链表，忽略了抽象组件
     parent.$children.push(vm)
   }
@@ -69,25 +77,28 @@ export function initLifecycle (vm: Component) {
   vm._isBeingDestroyed = false
 }
 
+/**
+ * 定义了_update $forceUpdate $destroy方法
+ * @date 2021-01-06
+ * @export
+ * @param {Class<Component>} Vue
+ */
 export function lifecycleMixin (Vue: Class<Component>) {
   // vm._update会把vnode渲染成真实的dom节点
   // 它调用的时机有两个地方，第一个是首次渲染，第二个是数据更新
+  // 核心其实就是调用了__patch__方法
   Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
     const vm: Component = this
     const prevEl = vm.$el
     const prevVnode = vm._vnode
     const restoreActiveInstance = setActiveInstance(vm)
-    vm._vnode = vnode
-    // Vue.prototype.__patch__ is injected in entry points
-    // based on the rendering backend used.
+    vm._vnode = vnode // 把实例上那个当前vnode更新为传入的这个
     // 使用prevVnode来判断是首次渲染还是更新DOM
     if (!prevVnode) {
       // 首次渲染
-      // initial render
       vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */)
     } else {
       // 更新DOM
-      // updates
       vm.$el = vm.__patch__(prevVnode, vnode)
     }
     restoreActiveInstance()
@@ -106,6 +117,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
     // updated in a parent's updated hook.
   }
 
+  // 提供了一个手动调用当前watcher的update的方法的方法
   Vue.prototype.$forceUpdate = function () {
     const vm: Component = this
     if (vm._watcher) {
@@ -113,40 +125,45 @@ export function lifecycleMixin (Vue: Class<Component>) {
     }
   }
 
+  // 销毁实例
   Vue.prototype.$destroy = function () {
     const vm: Component = this
+    // 如果正在被销毁就不管了
     if (vm._isBeingDestroyed) {
       return
     }
+    // 上来就调用beforeDestory钩子
     callHook(vm, 'beforeDestroy')
     vm._isBeingDestroyed = true
-    // remove self from parent
+    // 1.从父实例上的$children列表中移除自己
     const parent = vm.$parent
     if (parent && !parent._isBeingDestroyed && !vm.$options.abstract) {
       remove(parent.$children, vm)
     }
-    // teardown watchers
+    // 2.销毁watcher
+    // 当前watcher
     if (vm._watcher) {
       vm._watcher.teardown()
     }
     let i = vm._watchers.length
+    // 销毁所有watcher
     while (i--) {
       vm._watchers[i].teardown()
     }
     // remove reference from data ob
     // frozen object may not have observer.
+    // 实例被销毁那么__ob__的计数也要减一
     if (vm._data.__ob__) {
       vm._data.__ob__.vmCount--
     }
-    // call the last hook...
     vm._isDestroyed = true
-    // invoke destroy hooks on current rendered tree
+    // 把vnode给更新咯
     vm.__patch__(vm._vnode, null)
-    // fire destroyed hook
+    // destroyed钩子调用
     callHook(vm, 'destroyed')
-    // turn off all instance listeners.
+    // 取消所有事件监听
     vm.$off()
-    // remove __vue__ reference
+    // $el上的__vue__重置
     if (vm.$el) {
       vm.$el.__vue__ = null
     }
@@ -161,9 +178,9 @@ export function lifecycleMixin (Vue: Class<Component>) {
  * 挂载组件
  * @date 2020-04-21
  * @export
- * @param {Component} vm
- * @param {?Element} el
- * @param {boolean} [hydrating]
+ * @param {Component} vm - 当前实例
+ * @param {?Element} el - 被挂载的DOM实例
+ * @param {boolean} [hydrating] - 是否服务端渲染
  * @returns {Component}
  */
 export function mountComponent (
@@ -173,6 +190,7 @@ export function mountComponent (
 ): Component {
   vm.$el = el
   // 如果没有使用render的方式去定义template（createElement）
+  // 那就是我们最熟悉的template标签的方式咯
   if (!vm.$options.render) {
     // 给一个默认值
     vm.$options.render = createEmptyVNode

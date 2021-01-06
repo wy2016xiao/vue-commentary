@@ -570,7 +570,6 @@ export function createPatchFunction (backend) {
             //移动到oldStartVnode前
             canMove && nodeOps.insertBefore(parentElm, vnodeToMove.elm, oldStartVnode.elm)
           } else {
-            // same key but different element. treat as new element
             // 相同的key，但节点元素不同，和没有相同节点一样.
             // 以ns为基础创建一个ele元素并插入到oldStartVnode前
             createElm(newStartVnode, insertedVnodeQueue, parentElm, oldStartVnode.elm, false, newCh, newStartIdx)
@@ -583,7 +582,7 @@ export function createPatchFunction (backend) {
 
     // 全部遍历完了之后
     if (oldStartIdx > oldEndIdx) {
-      //如果旧节点先遍历完，把剩余的vnode全部插入到ne+1前位置
+      //如果旧节点先遍历完，把剩余的vnode全部插入到oe+1前位置
       refElm = isUndef(newCh[newEndIdx + 1]) ? null : newCh[newEndIdx + 1].elm
       addVnodes(parentElm, refElm, newCh, newStartIdx, newEndIdx, insertedVnodeQueue)
     } else if (newStartIdx > newEndIdx) {

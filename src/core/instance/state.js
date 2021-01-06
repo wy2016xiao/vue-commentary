@@ -60,11 +60,11 @@ export function proxy (target: Object, sourceKey: string, key: string) {
 export function initState (vm: Component) {
   vm._watchers = []
   const opts = vm.$options
+  // 初始化props,同时将prop绑定到实例上方便用户获取
   if (opts.props) initProps(vm, opts.props)
-  // 这个比较简单，进行一些错误判断，然后使用bind方法把this指向vm
+  // 这个比较简单，进行一些错误判断，然后使用bind方法把this指向vm,方便用户获取
   if (opts.methods) initMethods(vm, opts.methods)
   if (opts.data) {
-    // QUESTION: 其他地方都是在外面取vm.$options
     // 这里是穿进去之后取vm.$options
     // 不太懂，不是同一个人写的？
     initData(vm)
@@ -87,18 +87,20 @@ export function initState (vm: Component) {
  * 主要是监听
  */
 function initProps (vm: Component, propsOptions: Object) {
-  // 获取父组件的propsData,该属性主要是用于测试
+  // 创建实例时传递 props。主要作用是方便测试。
+  // 使用new Vue()等方式创建实例时,区别于使用tempalte模板,是需要使用另一种方式传递props的
+  // 即propsData属性
   const propsData = vm.$options.propsData || {}
   // 存放最终的props对象到vm._props
   const props = vm._props = {}
   // 一个优化
   // 将props的key缓存到vm.$options._propKeys，为了后续更新时的快速的查找，而不需要动态的枚举
-  // cache prop keys so that future props updates can iterate using Array
-  // instead of dynamic object key enumeration.
   const keys = vm.$options._propKeys = []
   const isRoot = !vm.$parent
-  // 如果是根实例的props那么必须转换一下
-  // root instance props should be converted
+  // 如果不是根实例的props那么必须转换一下
+  // 禁止进行观察
+  // 这是因为如果不是根节点,他的props肯定是父节点给的
+  // 而父节点的数据已经被监听过了
   if (!isRoot) {
     toggleObserving(false)
   }
@@ -133,9 +135,6 @@ function initProps (vm: Component, propsOptions: Object) {
       // 赋值并监听props
       defineReactive(props, key, value)
     }
-    // static props are already proxied on the component's prototype
-    // during Vue.extend(). We only need to proxy props defined at
-    // instantiation here.
     // 代理到vm对象上，使用vm.xx或者组件中this.xx直接访问props属性
     // 当你使用vm.xx或者this.xx时，实际上访问的是_props属性下的这些属性
     if (!(key in vm)) {
@@ -146,7 +145,9 @@ function initProps (vm: Component, propsOptions: Object) {
 }
 
 /**
- *
+ * 初始化data
+ * 包括各种合法性检查
+ * 以及对data进行observe
  *
  * @date 2020-05-05
  * @param {Component} vm
@@ -167,8 +168,7 @@ function initData (vm: Component) {
       vm
     )
   }
-  // proxy data on instance
-  // 在实例上代理data
+  // 接下来对data进行名字检查
   const keys = Object.keys(data)
   const props = vm.$options.props
   const methods = vm.$options.methods
@@ -212,14 +212,13 @@ function initData (vm: Component) {
  * @returns {*}
  */
 export function getData (data: Function, vm: Component): any {
-  // #7573 disable dep collection when invoking data getters
-  // 暂停一下
+  // 将当前的target置为undefined,暂停一下
   pushTarget()
   try {
     // 以vm为参数调用data
     // 这样你其实可以在data的函数里面使用this
     // 当然里面其实获取不到太多的东西
-    // 至少props是有的
+    // 至少props是有的,因为这个时候已经完成了initProps
     return data.call(vm, vm)
   } catch (e) {
     handleError(e, vm, `data()`)
@@ -302,7 +301,7 @@ export function defineComputed (
 ) {
   // 如果是非服务端渲染，可以把它缓存起来
   const shouldCache = !isServerRendering()
-  // 如果定义是对象形式
+  // 如果定义是函数形式
   if (typeof userDef === 'function') {
     // 通过Object.defineProperty实现对计算属性的getter和setter方法的劫持。
     // 调用getter方法时，实际调用createComputedGetter方法。
@@ -428,7 +427,8 @@ function initWatch (vm: Component, watch: Object) {
 }
 
 /**
- *
+ * 格式化一下watch选项的值
+ * 毕竟有很多种写法
  *
  * @date 2020-04-21
  * @param {Component} vm
@@ -473,10 +473,19 @@ function createWatcher (
   return vm.$watch(expOrFn, handler, options)
 }
 
+
+/**
+ * 定义了$data $props $set $delete $watch
+ *
+ * @date 2021-01-06
+ * @export
+ * @param {Class<Component>} Vue
+ */
 export function stateMixin (Vue: Class<Component>) {
   // flow somehow has problems with directly declared definition object
   // when using Object.defineProperty, so we have to procedurally build up
   // the object here.
+  // 不允许用户对$data $props两个对象设置属性
   const dataDef = {}
   dataDef.get = function () { return this._data }
   const propsDef = {}

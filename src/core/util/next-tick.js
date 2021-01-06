@@ -40,6 +40,9 @@ let timerFunc
 // Promise is available, we will use it:
 /* istanbul ignore next, $flow-disable-line */
 if (typeof Promise !== 'undefined' && isNative(Promise)) {
+  // 如果有Promise类并且是原生类则使用Promise
+  // 使用一个立即resolve的Promise来调用回调列表
+  // ios直接使用setTImeout
   const p = Promise.resolve()
   timerFunc = () => {
     p.then(flushCallbacks)
@@ -56,9 +59,9 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
   // PhantomJS and iOS 7.x
   MutationObserver.toString() === '[object MutationObserverConstructor]'
 )) {
-  // Use MutationObserver where native Promise is not available,
-  // e.g. PhantomJS, iOS7, Android 4.4
-  // (#6466 MutationObserver is unreliable in IE11)
+  // 如果能用MutationObserver类
+  // 创建一个文本节点,用该类监听这个节点
+  // 然后手动修改这个文本节点的值让MutationObserver触发
   let counter = 1
   const observer = new MutationObserver(flushCallbacks)
   const textNode = document.createTextNode(String(counter))
@@ -71,19 +74,26 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
   }
   isUsingMicroTask = true
 } else if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) {
-  // Fallback to setImmediate.
-  // Techinically it leverages the (macro) task queue,
-  // but it is still a better choice than setTimeout.
+  // 尝试使用setImmedate
   timerFunc = () => {
     setImmediate(flushCallbacks)
   }
 } else {
-  // Fallback to setTimeout.
+  // 尝试使用setTimeout
   timerFunc = () => {
     setTimeout(flushCallbacks, 0)
   }
 }
 
+/**
+ * 下一个事件循环的钩子
+ *
+ * @date 2021-01-06
+ * @export
+ * @param {Function} [cb] 将要在nextTick做的事情
+ * @param {Object} [ctx] 一般是vue
+ * @returns 
+ */
 export function nextTick (cb?: Function, ctx?: Object) {
   let _resolve
   callbacks.push(() => {

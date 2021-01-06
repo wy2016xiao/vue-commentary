@@ -27,7 +27,7 @@ export function initRender (vm: Component) {
   // v-once树的缓存
   vm._staticTrees = null // v-once cached trees
   const options = vm.$options
-  // 为什么vm.$vnode取的是_parentVnode
+  // CONFUSING: 为什么vm.$vnode取的是_parentVnode
   const parentVnode = vm.$vnode = options._parentVnode // the placeholder node in parent tree
   const renderContext = parentVnode && parentVnode.context
   vm.$slots = resolveSlots(options._renderChildren, renderContext)
@@ -36,11 +36,11 @@ export function initRender (vm: Component) {
   // so that we get proper render context inside it.
   // args order: tag, data, children, normalizationType, alwaysNormalize
   // internal version is used by render functions compiled from templates
-  // tamplate 函数的处理
+  // tamplate渲染为render函数时的处理
   vm._c = (a, b, c, d) => createElement(vm, a, b, c, d, false)
   // normalization is always applied for the public version, used in
   // user-written render functions.
-  // render函数的处理
+  // 用户自己用render函数
   vm.$createElement = (a, b, c, d) => createElement(vm, a, b, c, d, true)
 
   // $attrs & $listeners are exposed for easier HOC creation.
@@ -72,6 +72,13 @@ export function setCurrentRenderingInstance (vm: Component) {
   currentRenderingInstance = vm
 }
 
+/**
+ * 定义了$nextTick _render 方法
+ *
+ * @date 2021-01-06
+ * @export
+ * @param {Class<Component>} Vue
+ */
 export function renderMixin (Vue: Class<Component>) {
   // install runtime convenience helpers
   installRenderHelpers(Vue.prototype)
@@ -79,7 +86,7 @@ export function renderMixin (Vue: Class<Component>) {
   Vue.prototype.$nextTick = function (fn: Function) {
     return nextTick(fn, this)
   }
-
+  
   Vue.prototype._render = function (): VNode {
     const vm: Component = this
     const { render, _parentVnode } = vm.$options
@@ -92,10 +99,8 @@ export function renderMixin (Vue: Class<Component>) {
       )
     }
 
-    // set parent vnode. this allows render functions to have access
-    // to the data on the placeholder node.
     vm.$vnode = _parentVnode
-    // render self
+
     let vnode
     try {
       // There's no need to maintain a stack becaues all render fns are called
@@ -111,6 +116,7 @@ export function renderMixin (Vue: Class<Component>) {
       //     this.$slots.default // 子元素数组
       //   )
       // }
+      // 调用用户传入的render函数
       vnode = render.call(vm._renderProxy, vm.$createElement)
     } catch (e) {
       handleError(e, vm, `render`)

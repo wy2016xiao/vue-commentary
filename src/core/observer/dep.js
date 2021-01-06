@@ -7,9 +7,10 @@ let uid = 0
 
 /**
  * dependency 依赖类
- *  Dep 就是一个 Watcher 所对应的数据依赖，在这个对象中也存有一个 subs 数组，用来保存和这个依赖有关的 Watcher。
+ * Dep 是一个类，用于依赖收集和派发更新，也就是存放watcher实例和触发watcher实例上的update。
  * 其成员函数最主要的是 depend 和 notify 
- * 前者用来设置某个 Watcher 的依赖，后者则用来通知与这个依赖相关的 Watcher 来运行其回调函数。
+ * Dep是watcher实例的管理者。类似观察者模式的实现
+ * 前者用来收集 Watcher ，后者则用来通知与这个依赖相关的 Watcher 来运行其回调函数。
  * @date 2020-05-05
  * @export
  * @class Dep
@@ -19,6 +20,11 @@ export default class Dep {
   id: number; // 属性
   subs: Array<Watcher>;  // watcher类集合
 
+  /**
+   * Creates an instance of Dep.
+   * 添加id和subs属性
+   * @date 2021-01-04
+   */
   constructor () {
     this.id = uid++
     this.subs = []
@@ -34,6 +40,8 @@ export default class Dep {
 
   // Dep.target为当前的watcher
   // 和watcher进行你中有我我中有你
+  // dep收集watcher,watcher也能知道谁收集了自己
+  // 在dep中依靠depend告诉watcher我收集你了
   depend () {
     if (Dep.target) {
       Dep.target.addDep(this)

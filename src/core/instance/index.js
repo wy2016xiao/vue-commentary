@@ -6,14 +6,17 @@ import { lifecycleMixin } from './lifecycle'
 import { warn } from '../util/index'
 
 /**
- * 定义vue，Vue类构造函数
+ * 生命的起源,定义Vue构造函数
  */
 function Vue (options) {
-  if (process.env.NODE_ENV !== 'production' &&
-    !(this instanceof Vue)
+  if (process.env.NODE_ENV !== 'production' && // 非生产环境
+    !(this instanceof Vue) // 当前调用不是使用new命令
+    // TIP: 这里涉及一个小知识点,this instanceof XXX可以判断是否使用new调用
   ) {
-    // 首先，提示是非生产环境才有的
-    // 其次，只能使用new关键词来调用该函数
+    /**
+     * 首先，提示是非生产环境才有的
+     * 其次，只能使用new关键词来调用该函数
+     */
     warn('Vue is a constructor and should be called with the `new` keyword')
   }
   // 执行初始化方法
@@ -29,12 +32,10 @@ function Vue (options) {
   this._init(options)
 }
 
-// 定义了_init方法
-initMixin(Vue) 
-
-stateMixin(Vue) // mixin state modules
-eventsMixin(Vue) // mixin events modules
-lifecycleMixin(Vue) // mixin lifecycle function 
-renderMixin(Vue) // mixin render modules
+initMixin(Vue) // _init方法挂载
+stateMixin(Vue) // 状态相关属性和方法挂载 定义了$data $props $set $delete $watch
+eventsMixin(Vue) // 事件相关属性和方法挂载 定义了$on $once $off $emit
+lifecycleMixin(Vue) // 生命周期相关属性和方法挂载 定义了_update $forceUpdate $destroy方法
+renderMixin(Vue) // 渲染相关属性和方法挂载 定义了$nextTick _render 方法
 
 export default Vue

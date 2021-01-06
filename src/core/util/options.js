@@ -307,9 +307,8 @@ export function validateComponentName (name: string) {
 }
 
 /**
- * Ensure all props option syntax are normalized into the
- * Object-based format.
  * 确保最终能把props格式化成统一的格式，方便框架使用
+ * 包括名字转驼峰
  * 全部转成严谨的对象形式
  * myString: {
  *   type: String,
@@ -426,8 +425,14 @@ function assertObjectType (name: string, value: any, vm: ?Component) {
 }
 
 /**
- * Merge two option objects into a new one.
- * Core utility used in both instantiation and inheritance.
+ * 将用户自定义的options合并到实例
+ *
+ * @date 2021-01-04
+ * @export
+ * @param {Object} parent
+ * @param {Object} child
+ * @param {Component} [vm]
+ * @returns {Object}
  */
 export function mergeOptions (
   parent: Object, // resolveConstructorOptions返回的值(Vue的构造函数的options)，框架自带的options
@@ -441,7 +446,7 @@ export function mergeOptions (
   }
 
   if (typeof child === 'function') {
-    // 如果传入的是类型是function，则取其options
+    // 如果传入的类型是function，则取其options
     // 如果是function证明是vue实例(兼容一下，免得传错)
     child = child.options
   }
@@ -452,10 +457,6 @@ export function mergeOptions (
   normalizeInject(child, vm)
   normalizeDirectives(child)
 
-  // Apply extends and mixins on the child options,
-  // but only if it is a raw options object that isn't
-  // the result of another mergeOptions call.
-  // Only merged options has the _base property.
   // _base属性在initGlobalAPI的时候被添加，是个指向本身的指针
   // 只有初始化的Vue实例以及已经被执行过mergeOptions方法的vue实例有这个属性
   // 已经执行过mergeOptions方法就不需要在做这些融合

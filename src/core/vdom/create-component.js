@@ -98,10 +98,22 @@ const componentVNodeHooks = {
 
 const hooksToMerge = Object.keys(componentVNodeHooks)
 
+/**
+ * 
+ *
+ * @date 2021-01-13
+ * @export
+ * @param {(Class<Component> | Function | Object | void)} Ctor 
+ * @param {?VNodeData} data
+ * @param {Component} context
+ * @param {?Array<VNode>} children
+ * @param {string} [tag]
+ * @returns {(VNode | Array<VNode> | void)}
+ */
 export function createComponent (
   Ctor: Class<Component> | Function | Object | void,
-  data: ?VNodeData,
-  context: Component,
+  data: ?VNodeData, // 虚拟节点的data
+  context: Component, // vue上下文
   children: ?Array<VNode>,
   tag?: string
 ): VNode | Array<VNode> | void {
@@ -109,15 +121,16 @@ export function createComponent (
     return
   }
 
+  // $options._base就是Vue
   const baseCtor = context.$options._base
 
-  // plain options object: turn it into a constructor
+  // 如果是个简单对象,还需要把他融到基础构造函数中
+  // 简单对象代表是个需要扩展的配置项
   if (isObject(Ctor)) {
     Ctor = baseCtor.extend(Ctor)
   }
 
-  // if at this stage it's not a constructor or an async component factory,
-  // reject.
+  // 如果传进来的不是个构造函数,那就报错
   if (typeof Ctor !== 'function') {
     if (process.env.NODE_ENV !== 'production') {
       warn(`Invalid Component definition: ${String(Ctor)}`, context)
@@ -125,9 +138,10 @@ export function createComponent (
     return
   }
 
-  // async component
+  // 异步组件
   let asyncFactory
   if (isUndef(Ctor.cid)) {
+    // 没定义cid则表示当前是异步组件
     asyncFactory = Ctor
     Ctor = resolveAsyncComponent(asyncFactory, baseCtor)
     if (Ctor === undefined) {
@@ -148,17 +162,19 @@ export function createComponent (
 
   // resolve constructor options in case global mixins are applied after
   // component constructor creation
+  // 返回构造函数的options
+  // 这么做是为了防止在组件构造函数被应用后应用global mixins操作
   resolveConstructorOptions(Ctor)
 
-  // transform component v-model data into props & events
+  // 如果有v-model就将将其解析转换
   if (isDef(data.model)) {
     transformModel(Ctor.options, data)
   }
 
-  // extract props
+  // 提取配置的props 默认值 类型等信息
   const propsData = extractPropsFromVNodeData(data, Ctor, tag)
 
-  // functional component
+  // 函数式组件
   if (isTrue(Ctor.options.functional)) {
     return createFunctionalComponent(Ctor, propsData, data, context, children)
   }
@@ -245,8 +261,13 @@ function mergeHook (f1: any, f2: any): Function {
   return merged
 }
 
-// transform component v-model info (value and callback) into
-// prop and event handler respectively.
+/**
+ * 将组件的v-model信息(配置的prop和event)实现统一
+ * 也就是我们常说的,v-model双向绑定的实现
+ * @date 2021-01-13
+ * @param {*} options
+ * @param {*} data
+ */
 function transformModel (options, data: any) {
   const prop = (options.model && options.model.prop) || 'value'
   const event = (options.model && options.model.event) || 'input'

@@ -9,14 +9,23 @@ import {
   formatComponentName
 } from 'core/util/index'
 
+
+/**
+ * 获取对props的定义类型 默认值等信息
+ *
+ * @date 2021-01-13
+ * @export
+ * @param {VNodeData} data
+ * @param {Class<Component>} Ctor
+ * @param {string} [tag]
+ * @returns {?Object}
+ */
 export function extractPropsFromVNodeData (
   data: VNodeData,
   Ctor: Class<Component>,
   tag?: string
 ): ?Object {
-  // we are only extracting raw values here.
-  // validation and default values are handled in the child
-  // component itself.
+  // 如果实例没有定义props,直接就不去解析了,你声明了也没意义
   const propOptions = Ctor.options.props
   if (isUndef(propOptions)) {
     return
@@ -32,6 +41,7 @@ export function extractPropsFromVNodeData (
           key !== keyInLowerCase &&
           attrs && hasOwn(attrs, keyInLowerCase)
         ) {
+          // prop和attr同名警告
           tip(
             `Prop "${keyInLowerCase}" is passed to component ` +
             `${formatComponentName(tag || Ctor)}, but the declared prop name is` +
@@ -42,6 +52,7 @@ export function extractPropsFromVNodeData (
           )
         }
       }
+      // 检查attrs或者props里面有没有定义的prop,有就取值并返回
       checkProp(res, props, key, altKey, true) ||
       checkProp(res, attrs, key, altKey, false)
     }

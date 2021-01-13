@@ -34,7 +34,7 @@ const ALWAYS_NORMALIZE = 2
  * @param {*} tag / {String | Object | Function}
  * 一个 HTML 标签字符串，组件选项对象，或者
  * 解析上述任何一种的一个 async 异步函数。必需参数。
- * @param {*} data - 一个包含模板相关属性的数据对象，可选参数
+ * @param {*} data - 一个包含模板相关属性的数据对象，可选参数 会有attr props style on等
  * @param {*} children - 子虚拟节点 (VNodes)，由 `createElement()` 构建而成，
  * 也可以使用字符串来生成“文本虚拟节点”。可选参数。
  * @param {*} normalizationType - 子节点的规范类型，对于手写的render方法需要进行规整
@@ -107,7 +107,7 @@ export function _createElement (
     return createEmptyVNode()
   }
   // warn against non-primitive key
-  // key属性的值不是一个简单数据类型
+  // key属性的值不是一个简单数据类型的话,就警告
   if (process.env.NODE_ENV !== 'production' &&
     isDef(data) && isDef(data.key) && !isPrimitive(data.key)
   ) {
@@ -147,19 +147,15 @@ export function _createElement (
     if (config.isReservedTag(tag)) {
       // 保留字段规整
       // 创建一个普通的VNode，初始化tag，data，children等变量
-      // platform built-in elements
       vnode = new VNode(
+        // 让保留字段变得规整
         config.parsePlatformTagName(tag), data, children,
         undefined, undefined, context
-      )
+      ) 
     } else if ((!data || !data.pre) && isDef(Ctor = resolveAsset(context.$options, 'components', tag))) {
       // 已注册的组件，则调用createComponent创建VNode
-      // component
       vnode = createComponent(Ctor, data, context, children, tag)
     } else {
-      // unknown or unlisted namespaced elements
-      // check at runtime because it may get assigned a namespace when its
-      // parent normalizes children
       // 未知的或未列出的命名空间元素
       // 在运行时检查，因为它可能会被分配一个名称空间
       // 标准化子组件

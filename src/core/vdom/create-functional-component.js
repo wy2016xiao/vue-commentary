@@ -91,6 +91,18 @@ export function FunctionalRenderContext (
 
 installRenderHelpers(FunctionalRenderContext.prototype)
 
+/**
+ * 创建函数式组件
+ *
+ * @date 2021-01-13
+ * @export
+ * @param {Class<Component>} Ctor
+ * @param {?Object} propsData
+ * @param {VNodeData} data
+ * @param {Component} contextVm
+ * @param {?Array<VNode>} children
+ * @returns {(VNode | Array<VNode> | void)}
+ */
 export function createFunctionalComponent (
   Ctor: Class<Component>,
   propsData: ?Object,

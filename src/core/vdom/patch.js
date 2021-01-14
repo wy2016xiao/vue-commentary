@@ -99,16 +99,17 @@ export function createPatchFunction (backend) {
   const cbs = {}
 
   // nodeOps是关于dom节点的各种操作函数
-  // modules是各种指令模块导出的以生命周期明明的函数
+  // modules是各种指令模块导出的以生命周期命名的函数
   // 比如modules.style.create = updateStyle<Function>
   const { modules, nodeOps } = backend
 
   // 给cbs加上所有模块对应的生命周期的回调函数
-  // 例如style模块有create hook对应的回调函数updateStyle
+  // 例如style模块有create生命周期调用的函数updateStyle
+  // 则cbs.create = [updateStyle]
+  // 然后再看下一个modules有没有create生命周期该调用的函数,有就push进去
+  // 则cbs.create = [updateStyle, updateActivite]
   for (i = 0; i < hooks.length; ++i) {
-    // cbs = { create: [] }
     cbs[hooks[i]] = []
-  // cbs = { create: [], activite: [], update: [], ... }
     for (j = 0; j < modules.length; ++j) {
       if (isDef(modules[j][hooks[i]])) {
         // cbs.create.push(updateStyle<Function>)
@@ -120,11 +121,24 @@ export function createPatchFunction (backend) {
   /**
    * 以传进来的这个实际dom节点为基础
    * 创建一个空的虚拟节点
+   *
+   * @date 14/01/2021
+   * @param {*} elm
+   * @return {*}  
    */
   function emptyNodeAt (elm) {
     return new VNode(nodeOps.tagName(elm).toLowerCase(), {}, [], undefined, elm)
   }
 
+  /**
+   * 创建remove回调
+   * 调用后能删除当前创建的节点
+   *
+   * @date 14/01/2021
+   * @param {*} childElm
+   * @param {*} listeners
+   * @return {*}  
+   */
   function createRmCb (childElm, listeners) {
     function remove () {
       if (--remove.listeners === 0) {
@@ -136,8 +150,12 @@ export function createPatchFunction (backend) {
   }
 
   /**
+   * 删除元素
    * 如果有父dom元素
    * 从父dom元素中移除这个元素
+   *
+   * @date 14/01/2021
+   * @param {*} el
    */
   function removeNode (el) {
     const parent = nodeOps.parentNode(el)
@@ -148,7 +166,7 @@ export function createPatchFunction (backend) {
   }
 
   /**
-   * 判断vnode是不是位置的标签名
+   * 判断vnode是不是未知的标签名
    */
   function isUnknownElement (vnode, inVPre) {
     return (
@@ -173,10 +191,10 @@ export function createPatchFunction (backend) {
    *
    * @date 2020-04-23
    * @param {*} vnode - 虚拟node
-   * @param {*} insertedVnodeQueue
-   * @param {*} parentElm
-   * @param {*} refElm
-   * @param {*} nested
+   * @param {*} insertedVnodeQueue - inserted 钩子函数
+   * @param {*} parentElm - 父节点的DOM
+   * @param {*} refElm - 如果这个存在的话，就插到这个节点之前
+   * @param {*} nested - 嵌套的
    * @param {*} ownerArray
    * @param {*} index
    */
@@ -189,17 +207,11 @@ export function createPatchFunction (backend) {
     ownerArray,
     index
   ) {
+    // 如果存在子节点的话,就会克隆一遍
     if (isDef(vnode.elm) && isDef(ownerArray)) {
-      // This vnode was used in a previous render!
-      // now it's used as a new node, overwriting its elm would cause
-      // potential patch errors down the road when it's used as an insertion
-      // reference node. Instead, we clone the node on-demand before creating
-      // associated DOM element for it.
-      //这个vnode是在之前的渲染中使用的!
-      //现在它被用作一个新节点，覆盖它的elm会导致
-      //当它被用作插入时，可能会出现patch错误
-      //引用节点。相反，我们在创建之前按需克隆节点
-      //关联的DOM元素。
+      //这个vnode是在之前的渲染中使用过的!
+      //现在它被用作一个新节点，覆盖它的elm会导致当它被用作插入时，可能会出现patch错误引用节点。
+      // 相反，我们在创建之前按需克隆节点关联的DOM元素。
       vnode = ownerArray[index] = cloneVNode(vnode)
     }
 
@@ -207,7 +219,7 @@ export function createPatchFunction (backend) {
     if (createComponent(vnode, insertedVnodeQueue, parentElm, refElm)) {
       return
     }
-
+    
     const data = vnode.data
     const children = vnode.children
     const tag = vnode.tag
@@ -228,9 +240,12 @@ export function createPatchFunction (backend) {
       }
 
       // 2、创建该vnode的dom元素
+      // 没做什么特别的事情,有命名空间就创建命名空间,没有就创建DOM
+      // 如果vnode有attrs中的multiple属性就加上
       vnode.elm = vnode.ns
         ? nodeOps.createElementNS(vnode.ns, tag)
         : nodeOps.createElement(tag, vnode)
+      // 设置scope
       setScope(vnode)
 
       /* istanbul ignore if */
@@ -360,6 +375,7 @@ export function createPatchFunction (backend) {
     // 如果有子节点，则调用creatElm递归创建
     if (Array.isArray(children)) {
       if (process.env.NODE_ENV !== 'production') {
+        // 检查key是否重复
         checkDuplicateKeys(children)
       }
       for (let i = 0; i < children.length; ++i) {
@@ -389,14 +405,17 @@ export function createPatchFunction (backend) {
     }
   }
 
-  // set scope id attribute for scoped CSS.
-  // this is implemented as a special case to avoid the overhead
-  // of going through the normal attribute patching process.
+  // 为限定CSS设置范围id属性。
+  // 如果有使用scoped css,给vnode设置范围id
+  // 这是作为一种特殊情况实现的，以避免经历普通属性patching过程的开销。
   function setScope (vnode) {
     let i
     if (isDef(i = vnode.fnScopeId)) {
+      // 添加scopeId属性
       nodeOps.setStyleScope(vnode.elm, i)
     } else {
+      // 向上查找直到最上层祖先元素
+      // 同时如果每个祖先元素有_scopeId的话就加上scopeId属性
       let ancestor = vnode
       while (ancestor) {
         if (isDef(i = ancestor.context) && isDef(i = i.$options._scopeId)) {
@@ -405,7 +424,7 @@ export function createPatchFunction (backend) {
         ancestor = ancestor.parent
       }
     }
-    // for slot content they should also get the scopeId from the host instance.
+    // 对于插槽内容，它们还应该从主机实例获得scopeId
     if (isDef(i = activeInstance) &&
       i !== vnode.context &&
       i !== vnode.fnContext &&

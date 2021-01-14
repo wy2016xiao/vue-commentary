@@ -18,7 +18,8 @@ export const isReservedAttr = makeMap('style,class')
  */
 const acceptValue = makeMap('input,textarea,option,select,progress')
 /**
- * 检查该标签是否一定要写该属性
+ * 检查是否使用了恰当的标签和属性
+ * 
  * @param {string} tag 标签
  * @param {?string} type 类型
  * @param {string} attr 属性

@@ -19,15 +19,13 @@ import { patch } from './patch'
 import platformDirectives from './directives/index'
 import platformComponents from './components/index'
 
-// install platform specific utils
 // 加载web平台特殊工具函数
-Vue.config.mustUseProp = mustUseProp
-Vue.config.isReservedTag = isReservedTag
-Vue.config.isReservedAttr = isReservedAttr
-Vue.config.getTagNamespace = getTagNamespace
-Vue.config.isUnknownElement = isUnknownElement
+Vue.config.mustUseProp = mustUseProp // 检查是否使用了恰当的标签和属性 比如如果传了checked属性就一定得是input标签
+Vue.config.isReservedTag = isReservedTag // 检查是否是保留标签
+Vue.config.isReservedAttr = isReservedAttr // 检查是否是保留属性
+Vue.config.getTagNamespace = getTagNamespace // 检查标签的命名空间 目前只能查询svg和math标签的命名空间
+Vue.config.isUnknownElement = isUnknownElement // 检查是否是未知的标签
 
-// install platform runtime directives & components
 // 加载web平台运行时指令功能和组件
 // platformDirectives = {
 //   on,
@@ -40,7 +38,6 @@ Vue.config.isUnknownElement = isUnknownElement
 extend(Vue.options.directives, platformDirectives)
 extend(Vue.options.components, platformComponents)
 
-// install platform patch function
 // 装载平台的核心函数 patch函数
 Vue.prototype.__patch__ = inBrowser ? patch : noop
 
@@ -51,6 +48,7 @@ Vue.prototype.$mount = function (
 ): Component {
   // 找到那个元素
   el = el && inBrowser ? query(el) : undefined
+  // 装在在元素上
   return mountComponent(this, el, hydrating)
 }
 

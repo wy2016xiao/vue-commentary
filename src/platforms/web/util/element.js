@@ -48,8 +48,7 @@ export const isReservedTag = (tag: string): ?boolean => {
   return isHTMLTag(tag) || isSVG(tag)
 }
 /**
- * 查询标签类型，自定义的namespace
- * 目前好像只能查询是否是svg类型和math类型
+ * 检查标签的命名空间 目前只能查询svg和math标签的命名空间
  */
 export function getTagNamespace (tag: string): ?string {
   if (isSVG(tag)) {

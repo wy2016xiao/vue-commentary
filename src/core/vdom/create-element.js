@@ -172,18 +172,21 @@ export function _createElement (
     vnode = createComponent(tag, data, context, children)
   }
   if (Array.isArray(vnode)) {
+    // 是个数组就直接返回
     return vnode
   } else if (isDef(vnode)) {
-    if (isDef(ns)) applyNS(vnode, ns)
-    if (isDef(data)) registerDeepBindings(data)
+    // 不是数组
+    if (isDef(ns)) applyNS(vnode, ns) // 有命名空间则递归的赋予命名空间
+    if (isDef(data)) registerDeepBindings(data) // 对data进行深度的双向绑定 主要是styles和class
     return vnode
   } else {
+    // 没定义就给个空vnode
     return createEmptyVNode()
   }
 }
 
 /**
- * 递归地给VNode应用上下文
+ * 递归地给VNode应用命名空间
  */
 function applyNS (vnode, ns, force) {
   vnode.ns = ns

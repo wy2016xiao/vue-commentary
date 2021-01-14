@@ -91,7 +91,7 @@ const patternTypes: Array<Function> = [String, RegExp, Array]
  */
 export default {
   name: 'keep-alive',
-  abstract: true,
+  abstract: true, // 抽象组件,它自身不会渲染一个 DOM 元素，也不会出现在组件的父组件链中。
 
   props: {
     include: patternTypes,

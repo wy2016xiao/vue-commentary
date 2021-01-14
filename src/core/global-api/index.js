@@ -18,6 +18,13 @@ import {
   defineReactive
 } from '../util/index'
 
+/**
+ * 初始化全局API
+ *
+ * @date 14/01/2021
+ * @export
+ * @param {GlobalAPI} Vue
+ */
 export function initGlobalAPI (Vue: GlobalAPI) {
   // config
   const configDef = {}
@@ -34,7 +41,7 @@ export function initGlobalAPI (Vue: GlobalAPI) {
   // 把设置项放在Vue实例上方便使用
   Object.defineProperty(Vue, 'config', configDef)
 
-  // 暴露一些工具函数给框架自己而非用户使用
+  // 暴露一些工具函数给框架自身而非用户使用
   // 这些不被认为是公共API的一部分，避免去依赖它们除非你意识到这么做的风险
   Vue.util = {
     warn,
@@ -56,20 +63,19 @@ export function initGlobalAPI (Vue: GlobalAPI) {
 
   // 万恶之源，初始化options属性
   Vue.options = Object.create(null)
-  // ASSET_TYPES: 'component' 'directive' 'filter'
+  // ASSET_TYPES成员: 'component' 'directive' 'filter'
   ASSET_TYPES.forEach(type => {
     Vue.options[type + 's'] = Object.create(null)
   })
 
-  // this is used to Ωidentify the "base" constructor to extend all plain-object
-  // components with in Weex's multi-instance scenarios.
+  // 挂载基础Vue
   Vue.options._base = Vue
 
   // 把内置的components合并到用户定义的components中
   extend(Vue.options.components, builtInComponents)
 
-  initUse(Vue)
-  initMixin(Vue)
-  initExtend(Vue)
-  initAssetRegisters(Vue)
+  initUse(Vue) // Vue.use方法初始化(使用插件的方法)
+  initMixin(Vue) // Vue.Mixin方法初始化
+  initExtend(Vue) // Vue.extend方法初始化
+  initAssetRegisters(Vue) // Vue.components Vue.directive Vue.filter方法初始化
 }

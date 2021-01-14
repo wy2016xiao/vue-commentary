@@ -174,23 +174,21 @@ export function createComponent (
   // 提取配置的props 默认值 类型等信息
   const propsData = extractPropsFromVNodeData(data, Ctor, tag)
 
-  // 函数式组件
+  // 函数式组件创建
   if (isTrue(Ctor.options.functional)) {
     return createFunctionalComponent(Ctor, propsData, data, context, children)
   }
-
-  // extract listeners, since these needs to be treated as
-  // child component listeners instead of DOM listeners
+  
+  // 提取监听器，因为这些监听器需要作为子组件监听器处理，而不是DOM监听器
   const listeners = data.on
-  // replace with listeners with .native modifier
-  // so it gets processed during parent component patch.
+  // 用.native修饰符替换监听器，这样它就会在父组件patch期间被处理。
   data.on = data.nativeOn
 
   if (isTrue(Ctor.options.abstract)) {
-    // abstract components do not keep anything
-    // other than props & listeners & slot
+    // 如果是一个抽象组件
 
     // work around flow
+    // 抹去data上的所有内容,只取slot
     const slot = data.slot
     data = {}
     if (slot) {
@@ -198,10 +196,9 @@ export function createComponent (
     }
   }
 
-  // install component management hooks onto the placeholder node
   installComponentHooks(data)
 
-  // return a placeholder vnode
+  // 生成一个占位vnode
   const name = Ctor.options.name || tag
   const vnode = new VNode(
     `vue-component-${Ctor.cid}${name ? `-${name}` : ''}`,
@@ -239,6 +236,13 @@ export function createComponentInstanceForVnode (
   return new vnode.componentOptions.Ctor(options)
 }
 
+/**
+ * 安装组件hooks
+ * 一些用户定义的生命周期钩子
+ *
+ * @date 14/01/2021
+ * @param {VNodeData} data
+ */
 function installComponentHooks (data: VNodeData) {
   const hooks = data.hook || (data.hook = {})
   for (let i = 0; i < hooksToMerge.length; i++) {

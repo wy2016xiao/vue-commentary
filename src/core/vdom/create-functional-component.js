@@ -93,6 +93,7 @@ installRenderHelpers(FunctionalRenderContext.prototype)
 
 /**
  * 创建函数式组件
+ * 函数式组件无状态 (没有 data) 和无实例 (没有 this 上下文)。他们用一个简单的 render 函数返回虚拟节点使它们渲染的代价更小。
  *
  * @date 2021-01-13
  * @export

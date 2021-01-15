@@ -3,6 +3,15 @@
 import config from 'core/config'
 import { hyphenate } from 'shared/util'
 
+/**
+ * 判定actual是否和expect不相等或者不存在在expect数组中
+ *
+ * @date 15/01/2021
+ * @template T
+ * @param {(T | Array<T>)} expect
+ * @param {T} actual
+ * @return {*}  {boolean}
+ */
 function isKeyNotMatch<T> (expect: T | Array<T>, actual: T): boolean {
   if (Array.isArray(expect)) {
     return expect.indexOf(actual) === -1
@@ -12,9 +21,10 @@ function isKeyNotMatch<T> (expect: T | Array<T>, actual: T): boolean {
 }
 
 /**
- * Runtime helper for checking keyCodes from config.
- * exposed as Vue.prototype._k
+ * 检查config中的keyCodes的运行时助手
+ * 暴露为this._k函数
  * passing in eventKeyName as last argument separately for backwards compat
+ * 单独传入eventKeyName作为向后compat的最后一个参数
  */
 export function checkKeyCodes (
   eventKeyCode: number,

@@ -2,6 +2,16 @@
 
 import { warn, extend, isPlainObject } from 'core/util/index'
 
+/**
+ * 把v-on拿出来融到data里面
+ * 这里的data应该就是实例上的data
+ *
+ * @date 15/01/2021
+ * @export
+ * @param {*} data
+ * @param {*} value
+ * @return {*}  {VNodeData}
+ */
 export function bindObjectListeners (data: any, value: any): VNodeData {
   if (value) {
     if (!isPlainObject(value)) {

@@ -218,6 +218,15 @@ export function createComponent (
   return vnode
 }
 
+/**
+ * 从vnode中创建组件实例
+ *
+ * @date 15/01/2021
+ * @export
+ * @param {*} vnode
+ * @param {*} parent
+ * @return {*}  {Component}
+ */
 export function createComponentInstanceForVnode (
   vnode: any, // we know it's MountedComponentVNode but flow doesn't
   parent: any, // activeInstance in lifecycle state

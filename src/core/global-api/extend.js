@@ -4,6 +4,13 @@ import { ASSET_TYPES } from 'shared/constants'
 import { defineComputed, proxy } from '../instance/state'
 import { extend, mergeOptions, validateComponentName } from '../util/index'
 
+/**
+ * 初始化Vue.extend
+ *
+ * @date 15/01/2021
+ * @export
+ * @param {GlobalAPI} Vue
+ */
 export function initExtend (Vue: GlobalAPI) {
   /**
    * Each instance constructor, including Vue, has a unique
@@ -14,7 +21,8 @@ export function initExtend (Vue: GlobalAPI) {
   let cid = 1
 
   /**
-   * Class inheritance
+   * 使用基础 Vue 构造器，创建一个“子类”。参数是一个包含组件选项的对象。
+   * 同时会缓存这个子类
    */
   Vue.extend = function (extendOptions: Object): Function {
     extendOptions = extendOptions || {}
@@ -22,15 +30,19 @@ export function initExtend (Vue: GlobalAPI) {
     const SuperId = Super.cid
     const cachedCtors = extendOptions._Ctor || (extendOptions._Ctor = {})
     if (cachedCtors[SuperId]) {
+      // 缓存里面有就直接取
       return cachedCtors[SuperId]
     }
 
+    // 没定义名字就用继承来的名字
     const name = extendOptions.name || Super.options.name
     if (process.env.NODE_ENV !== 'production' && name) {
+      // 名字检查again
       validateComponentName(name)
     }
 
     const Sub = function VueComponent (options) {
+      // 调用prototype._init进行实例化
       this._init(options)
     }
     Sub.prototype = Object.create(Super.prototype)

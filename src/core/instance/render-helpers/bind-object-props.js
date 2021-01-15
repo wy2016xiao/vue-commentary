@@ -14,6 +14,18 @@ import {
 /**
  * Runtime helper for merging v-bind="object" into a VNode's data.
  */
+/**
+ * 把v-bind拿出来融到data里面
+ *
+ * @date 15/01/2021
+ * @export
+ * @param {*} data
+ * @param {string} tag
+ * @param {*} value
+ * @param {boolean} asProp
+ * @param {boolean} [isSync]
+ * @return {*}  {VNodeData}
+ */
 export function bindObjectProps (
   data: any,
   tag: string,

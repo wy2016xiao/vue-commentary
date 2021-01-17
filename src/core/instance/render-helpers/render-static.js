@@ -1,7 +1,15 @@
 /* @flow */
 
 /**
- * Runtime helper for rendering static trees.
+ * 渲染静态树
+ * 静态render就是用于渲染那些不会变化的节点的
+ * 
+ *
+ * @date 2021-01-17
+ * @export
+ * @param {number} index
+ * @param {boolean} isInFor
+ * @returns {(VNode | Array<VNode>)}
  */
 export function renderStatic (
   index: number,

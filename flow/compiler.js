@@ -1,54 +1,61 @@
+// 编译器的选项,编译器工厂函数可以据此生成编译器
 declare type CompilerOptions = {
-  warn?: Function; // allow customizing warning in different environments; e.g. node
-  modules?: Array<ModuleOptions>; // platform specific modules; e.g. style; class
-  directives?: { [key: string]: Function }; // platform specific directives
-  staticKeys?: string; // a list of AST properties to be considered static; for optimization
-  isUnaryTag?: (tag: string) => ?boolean; // check if a tag is unary for the platform
-  canBeLeftOpenTag?: (tag: string) => ?boolean; // check if a tag can be left opened
-  isReservedTag?: (tag: string) => ?boolean; // check if a tag is a native for the platform
-  preserveWhitespace?: boolean; // preserve whitespace between elements? (Deprecated)
-  whitespace?: 'preserve' | 'condense'; // whitespace handling strategy
-  optimize?: boolean; // optimize static content?
+  warn?: Function; // 允许在不同环境自定义警告内容
+  modules?: Array<ModuleOptions>; // 平台特有的模块 比如class styles
+  directives?: { [key: string]: Function }; // 平台特有的指令
+  staticKeys?: string; // 一份静态的AST属性列表,为了优化而使用
+  isUnaryTag?: (tag: string) => ?boolean; // 一元标签,即单标签
+  canBeLeftOpenTag?: (tag: string) => ?boolean; // 是否不用闭合标签 比如tr、td等
+  isReservedTag?: (tag: string) => ?boolean; // 是否是保留标签
+  preserveWhitespace?: boolean; // 保留元素间的空格(已弃用)
+  whitespace?: 'preserve' | 'condense'; // 空格处理策略
+  optimize?: boolean; // 是否优化静态内容
 
   // web specific
-  mustUseProp?: (tag: string, type: ?string, name: string) => boolean; // check if an attribute should be bound as a property
-  isPreTag?: (attr: string) => ?boolean; // check if a tag needs to preserve whitespace
-  getTagNamespace?: (tag: string) => ?string; // check the namespace for a tag
-  expectHTML?: boolean; // only false for non-web builds
-  isFromDOM?: boolean;
-  shouldDecodeTags?: boolean;
-  shouldDecodeNewlines?:  boolean;
-  shouldDecodeNewlinesForHref?: boolean;
-  outputSourceRange?: boolean;
+  // web特有的
+  mustUseProp?: (tag: string, type: ?string, name: string) => boolean; // 检查标签上的attribute是否应该绑定到props上
+  isPreTag?: (attr: string) => ?boolean; // 判断tag标签是否叫'pre' (实现方式很粗暴,pre标签内的文本保留空格和换行)
+  getTagNamespace?: (tag: string) => ?string; // 获取标签的命名空间
+  expectHTML?: boolean; // 是否是html(一般都是true)
+  isFromDOM?: boolean; // 好像没用上,看意思应该是是否来自DOM?
+  shouldDecodeTags?: boolean; // 是否需要解码标签 没用上
+  shouldDecodeNewlines?:  boolean; // 是否需要对换行符和制表符做兼容处理  &#10和&#9
+  shouldDecodeNewlinesForHref?: boolean; // 是否需要对a标签的 href 属性值中的换行符或制表符做兼容处理
+  outputSourceRange?: boolean; // 非生产环境需要  输出源
 
-  // runtime user-configurable
-  delimiters?: [string, string]; // template delimiters
-  comments?: boolean; // preserve comments in template
+  // 用户定义的选项内容
+  delimiters?: [string, string]; // 用户定义的delimiters选项
+  comments?: boolean; // 保留tempalte里面的注释
 
   // for ssr optimization compiler
+  // ssr优化专用
   scopeId?: string;
 };
 
+// warning消息格式
 declare type WarningMessage = {
   msg: string;
   start?: number;
   end?: number;
 };
 
+// 解析后的返回
 declare type CompiledResult = {
-  ast: ?ASTElement;
-  render: string;
-  staticRenderFns: Array<string>;
-  stringRenderFns?: Array<string>;
-  errors?: Array<string | WarningMessage>;
-  tips?: Array<string | WarningMessage>;
+  ast: ?ASTElement; // ast 抽象语法树
+  render: string; // 渲染器表达式
+  staticRenderFns: Array<string>; // 静态渲染函数
+  stringRenderFns?: Array<string>; // 字符串渲染函数
+  errors?: Array<string | WarningMessage>; // 错误返回信息
+  tips?: Array<string | WarningMessage>; // 提示
 };
 
+// 模块的选项
 declare type ModuleOptions = {
-  // transform an AST node before any attributes are processed
-  // returning an ASTElement from pre/transforms replaces the element
+  // 在处理任何attributes之前转换ast节点
+  // 从pretransforms返回一个ASTElement将替换该元素
   preTransformNode: (el: ASTElement) => ?ASTElement;
   // transform an AST node after built-ins like v-if, v-for are processed
+  // 在处理内置指令(v-if v-for)后转换AST
   transformNode: (el: ASTElement) => ?ASTElement;
   // transform an AST node after its children have been processed
   // cannot return replacement in postTransform because tree is already finalized

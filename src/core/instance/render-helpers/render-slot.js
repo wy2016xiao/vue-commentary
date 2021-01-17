@@ -3,7 +3,16 @@
 import { extend, warn, isObject } from 'core/util/index'
 
 /**
- * Runtime helper for rendering <slot>
+ * slot的渲染函数
+ * 实际上是调用createElement,创建一个template
+ *
+ * @date 2021-01-17
+ * @export
+ * @param {string} name
+ * @param {?Array<VNode>} fallback
+ * @param {?Object} props
+ * @param {?Object} bindObject
+ * @returns {?Array<VNode>}
  */
 export function renderSlot (
   name: string,

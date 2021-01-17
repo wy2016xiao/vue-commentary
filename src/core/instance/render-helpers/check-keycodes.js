@@ -21,7 +21,7 @@ function isKeyNotMatch<T> (expect: T | Array<T>, actual: T): boolean {
 }
 
 /**
- * 检查config中的keyCodes的运行时助手
+ * 检查config中的keyCodes的合法性
  * 暴露为this._k函数
  * passing in eventKeyName as last argument separately for backwards compat
  * 单独传入eventKeyName作为向后compat的最后一个参数

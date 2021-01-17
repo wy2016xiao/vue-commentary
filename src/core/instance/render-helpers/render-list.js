@@ -3,7 +3,17 @@
 import { isObject, isDef, hasSymbol } from 'core/util/index'
 
 /**
- * Runtime helper for rendering v-for lists.
+ * v-for列表的渲染辅助函数
+ * 
+ * @date 2021-01-17
+ * @export
+ * @param {*} val
+ * @param {((
+ *     val: any,
+ *     keyOrIndex: string | number,
+ *     index?: number
+ *   ) => VNode)} render render函数,返回vnode
+ * @returns {?Array<VNode>}
  */
 export function renderList (
   val: any,

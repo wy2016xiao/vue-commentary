@@ -68,7 +68,7 @@ declare type ModuleOptions = {
 };
 // ast修改器
 declare type ASTModifiers = { [key: string]: boolean };
-// ast
+// ast中的v-if的判断条件
 declare type ASTIfCondition = { exp: ?string; block: ASTElement };
 declare type ASTIfConditions = Array<ASTIfCondition>;
 
@@ -107,35 +107,94 @@ declare type ASTDirective = {
 
 declare type ASTNode = ASTElement | ASTText | ASTExpression;
 
+// <ul :class="bindCls" class="list" v-if="isShow">
+//  <li v-for="(item,index) in data" @click="clickItem(index)">{{item}}:{{index}}</li>
+// </ul>
+
+// ast = {
+//   'type': 1,
+//   'tag': 'ul',
+//   'attrsList': [],
+//   'attrsMap': {
+//     ':class': 'bindCls',
+//     'class': 'list',
+//     'v-if': 'isShow'
+//   },
+//   'if': 'isShow',
+//   'ifConditions': [{
+//     'exp': 'isShow',
+//     'block': // ul ast element
+//   }],
+//   'parent': undefined,
+//   'plain': false,
+//   'staticClass': 'list',
+//   'classBinding': 'bindCls',
+//   'children': [{
+//     'type': 1,
+//     'tag': 'li',
+//     'attrsList': [{
+//       'name': '@click',
+//       'value': 'clickItem(index)'
+//     }],
+//     'attrsMap': {
+//       '@click': 'clickItem(index)',
+//       'v-for': '(item,index) in data'
+//      },
+//     'parent': // ul ast element
+//     'plain': false,
+//     'events': {
+//       'click': {
+//         'value': 'clickItem(index)'
+//       }
+//     },
+//     'hasBindings': true,
+//     'for': 'data',
+//     'alias': 'item',
+//     'iterator1': 'index',
+//     'children': [
+//       'type': 2,
+//       'expression': '_s(item)+":"+_s(index)'
+//       'text': '{{item}}:{{index}}',
+//       'tokens': [
+//         {'@binding':'item'},
+//         ':',
+//         {'@binding':'index'}
+//       ]
+//     ]
+//   }]
+// }
+
+
+// 元素节点的ast
 declare type ASTElement = {
   type: 1;
-  tag: string;
-  attrsList: Array<ASTAttr>;
-  attrsMap: { [key: string]: any };
-  rawAttrsMap: { [key: string]: ASTAttr };
-  parent: ASTElement | void;
-  children: Array<ASTNode>;
+  tag: string; // 标签名
+  attrsList: Array<ASTAttr>; // 标签属性列表
+  attrsMap: { [key: string]: any }; // 属性和值的hash
+  rawAttrsMap: { [key: string]: ASTAttr }; // 原始的属性键值对
+  parent: ASTElement | void; // 父节点的ast
+  children: Array<ASTNode>; // 子节点的ast
 
   start?: number;
   end?: number;
 
   processed?: true;
 
-  static?: boolean;
-  staticRoot?: boolean;
-  staticInFor?: boolean;
-  staticProcessed?: boolean;
-  hasBindings?: boolean;
+  static?: boolean; // 是否静态节点
+  staticRoot?: boolean; // 是否静态根节点
+  staticInFor?: boolean; // 是否v-for中的静态节点
+  staticProcessed?: boolean; // 
+  hasBindings?: boolean; //
 
-  text?: string;
-  attrs?: Array<ASTAttr>;
-  dynamicAttrs?: Array<ASTAttr>;
+  text?: string; // 文本内容
+  attrs?: Array<ASTAttr>; // 
+  dynamicAttrs?: Array<ASTAttr>; // 动态attrs
   props?: Array<ASTAttr>;
   plain?: boolean;
   pre?: true;
-  ns?: string;
+  ns?: string; // namespace
 
-  component?: string;
+  component?: string; // 组件
   inlineTemplate?: true;
   transitionMode?: string | null;
   slotName?: ?string;

@@ -54,21 +54,25 @@ declare type ModuleOptions = {
   // 在处理任何attributes之前转换ast节点
   // 从pretransforms返回一个ASTElement将替换该元素
   preTransformNode: (el: ASTElement) => ?ASTElement;
-  // transform an AST node after built-ins like v-if, v-for are processed
   // 在处理内置指令(v-if v-for)后转换AST
   transformNode: (el: ASTElement) => ?ASTElement;
-  // transform an AST node after its children have been processed
-  // cannot return replacement in postTransform because tree is already finalized
+  // 在子节点被处理前转换ast
+  // 不能返回东西因为ast树已经完成
   postTransformNode: (el: ASTElement) => void;
-  genData: (el: ASTElement) => string; // generate extra data string for an element
-  transformCode?: (el: ASTElement, code: string) => string; // further transform generated code for an element
+  // 为元素生成额外的data字符串
+  genData: (el: ASTElement) => string;
+  // 进一步转换为元素生成的代码
+  transformCode?: (el: ASTElement, code: string) => string;
+  // 静态ast属性列表
   staticKeys?: Array<string>; // AST properties to be considered static
 };
-
+// ast修改器
 declare type ASTModifiers = { [key: string]: boolean };
+// ast
 declare type ASTIfCondition = { exp: ?string; block: ASTElement };
 declare type ASTIfConditions = Array<ASTIfCondition>;
 
+// ast属性
 declare type ASTAttr = {
   name: string;
   value: any;
@@ -76,7 +80,7 @@ declare type ASTAttr = {
   start?: number;
   end?: number
 };
-
+// ast元素的方法
 declare type ASTElementHandler = {
   value: string;
   params?: Array<any>;
@@ -89,7 +93,7 @@ declare type ASTElementHandler = {
 declare type ASTElementHandlers = {
   [key: string]: ASTElementHandler | Array<ASTElementHandler>;
 };
-
+// ast指令
 declare type ASTDirective = {
   name: string;
   rawName: string;

@@ -195,13 +195,13 @@ declare type ASTElement = {
   ns?: string; // namespace
 
   component?: string; // 组件
-  inlineTemplate?: true;
+  inlineTemplate?: true; // 行内template
   transitionMode?: string | null;
-  slotName?: ?string;
+  slotName?: ?string; // 具名插槽名称
   slotTarget?: ?string;
   slotTargetDynamic?: boolean;
-  slotScope?: ?string;
-  scopedSlots?: { [name: string]: ASTElement };
+  slotScope?: ?string; // 插槽作用域
+  scopedSlots?: { [name: string]: ASTElement }; // 作用域插槽
 
   ref?: string;
   refInFor?: boolean;
@@ -210,7 +210,7 @@ declare type ASTElement = {
   ifProcessed?: boolean;
   elseif?: string;
   else?: true;
-  ifConditions?: ASTIfConditions;
+  ifConditions?: ASTIfConditions; // if的具体判断条件
 
   for?: string;
   forProcessed?: boolean;
@@ -229,10 +229,10 @@ declare type ASTElement = {
   transition?: string | true;
   transitionOnAppear?: boolean;
 
-  model?: {
-    value: string;
-    callback: string;
-    expression: string;
+  model?: { // v-model相关内容
+    value: string; // 值
+    callback: string; // 回调
+    expression: string; // 表达式
   };
 
   directives?: Array<ASTDirective>;
@@ -250,6 +250,7 @@ declare type ASTElement = {
   appendAsTree?: boolean;
 };
 
+// 表达式ast
 declare type ASTExpression = {
   type: 2;
   expression: string;
@@ -262,11 +263,12 @@ declare type ASTExpression = {
   end?: number;
 };
 
+// 文本节点ast
 declare type ASTText = {
   type: 3;
   text: string;
   static?: boolean;
-  isComment?: boolean;
+  isComment?: boolean; // 是否是注释节点
   // 2.4 ssr optimization
   ssrOptimizability?: number;
   start?: number;

@@ -1,3 +1,4 @@
+// 内部组件的构造参数
 declare type InternalComponentOptions = {
   _isComponent: true;
   parent: Component;
@@ -8,13 +9,14 @@ declare type InternalComponentOptions = {
 
 type InjectKey = string | Symbol;
 
+// 普通组件的构造函数参数
 declare type ComponentOptions = {
   componentId?: string;
 
   // data
   data: Object | Function | void;
   props?: { [key: string]: PropOptions };
-  propsData?: ?Object;
+  propsData?: ?Object; // 创建实例时传递 props。主要作用是方便测试。 类似于在标签上写的props的值
   computed?: {
     [key: string]: Function | {
       get?: Function;
@@ -39,11 +41,11 @@ declare type ComponentOptions = {
   mounted?: Function;
   beforeUpdate?: Function;
   updated?: Function;
-  activated?: Function;
-  deactivated?: Function;
+  activated?: Function; // 被 keep-alive 缓存的组件激活时调用。
+  deactivated?: Function; // 被 keep-alive 缓存的组件停用时调用。
   beforeDestroy?: Function;
   destroyed?: Function;
-  errorCaptured?: () => boolean | void;
+  errorCaptured?: () => boolean | void; // 当捕获一个来自子孙组件的错误时被调用。
   serverPrefetch?: Function;
 
   // assets

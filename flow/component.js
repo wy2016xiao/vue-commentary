@@ -2,15 +2,16 @@ import type { Config } from '../src/core/config'
 import type VNode from '../src/core/vdom/vnode'
 import type Watcher from '../src/core/observer/watcher'
 
+// 组件实例
 declare interface Component {
   // constructor information
-  static cid: number;
-  static options: Object;
+  static cid: number; // 组件id
+  static options: Object; // 组件构造函数的选项
   // extend
-  static extend: (options: Object) => Function;
-  static superOptions: Object;
-  static extendOptions: Object;
-  static sealedOptions: Object;
+  static extend: (options: Object) => Function; // 组件扩展方法
+  static superOptions: Object; // 继承的options
+  static extendOptions: Object; // 扩展的options
+  static sealedOptions: Object; // 封闭的options
   static super: Class<Component>;
   // assets
   static directive: (id: string, def?: Function | Object) => Function | Object | void;
@@ -20,26 +21,28 @@ declare interface Component {
   static FunctionalRenderContext: Function;
 
   // public properties
-  $el: any; // so that we can attach __vue__ to it
-  $data: Object;
-  $props: Object;
-  $options: ComponentOptions;
-  $parent: Component | void;
-  $root: Component;
-  $children: Array<Component>;
-  $refs: { [key: string]: Component | Element | Array<Component | Element> | void };
-  $slots: { [key: string]: Array<VNode> };
-  $scopedSlots: { [key: string]: () => VNodeChildren };
-  $vnode: VNode; // the placeholder node for the component in parent's render tree
-  $attrs: { [key: string] : string };
-  $listeners: { [key: string]: Function | Array<Function> };
-  $isServer: boolean;
+  // 公共属性 实例property
+  $el: any; // Vue 实例使用的根 DOM 元素。
+  $data: Object; // Vue 实例观察的数据对象。Vue 实例代理了对其 data 对象 property 的访问。
+  $props: Object; // 当前组件接收到的 props 对象。Vue 实例代理了对其 props 对象 property 的访问。
+  $options: ComponentOptions; // 初始化选项options
+  $parent: Component | void; // 父实例，如果当前实例有的话
+  $root: Component; // 当前组件树的根 Vue 实例。如果当前实例没有父实例，此实例将会是其自己。
+  $children: Array<Component>; // 当前实例的直接子组件。需要注意 $children 并不保证顺序，也不是响应式的。
+  $refs: { [key: string]: Component | Element | Array<Component | Element> | void }; // 一个对象，持有注册过 ref attribute 的所有 DOM 元素和组件实例。
+  $slots: { [key: string]: Array<VNode> }; // 用来访问被插槽分发的内容。
+  $scopedSlots: { [key: string]: () => VNodeChildren }; // 用来访问作用域插槽。对于包括 默认 slot 在内的每一个插槽，该对象都包含一个返回相应 VNode 的函数。
+  $vnode: VNode; // 在父组件中存在的当前组件对应的vnode
+  $attrs: { [key: string] : string }; // 包含了父作用域中不作为 prop 被识别 (且获取) 的 attribute 绑定 (class 和 style 除外)。
+  $listeners: { [key: string]: Function | Array<Function> }; // 包含了父作用域中的 (不含 .native 修饰器的) v-on 事件监听器。
+  $isServer: boolean; // 当前 Vue 实例是否运行于服务器。
 
   // public methods
-  $mount: (el?: Element | string, hydrating?: boolean) => Component;
-  $forceUpdate: () => void;
-  $destroy: () => void;
-  $set: <T>(target: Object | Array<T>, key: string | number, val: T) => T;
+  // 公共方法
+  $mount: (el?: Element | string, hydrating?: boolean) => Component; // 返回实例自身
+  $forceUpdate: () => void; // 迫使 Vue 实例重新渲染。注意它仅仅影响实例本身和插入插槽内容的子组件，而不是所有子组件。
+  $destroy: () => void; // 完全销毁一个实例。清理它与其它实例的连接，解绑它的全部指令及事件监听器。
+  $set: <T>(target: Object | Array<T>, key: string | number, val: T) => T; // 这是全局 Vue.set 的别名。返回设置的值
   $delete: <T>(target: Object | Array<T>, key: string | number) => void;
   $watch: (expOrFn: string | Function, cb: Function, options?: Object) => Function;
   $on: (event: string | Array<string>, fn: Function) => Component;
@@ -50,19 +53,20 @@ declare interface Component {
   $createElement: (tag?: string | Component, data?: Object, children?: VNodeChildren) => VNode;
 
   // private properties
+  // 私有属性
   _uid: number | string;
   _name: string; // this only exists in dev mode
   _isVue: true;
   _self: Component;
-  _renderProxy: Component;
+  _renderProxy: Component; // 通常也是自己
   _renderContext: ?Component;
   _watcher: Watcher;
   _watchers: Array<Watcher>;
-  _computedWatchers: { [key: string]: Watcher };
+  _computedWatchers: { [key: string]: Watcher }; // computed中的watchers
   _data: Object;
   _props: Object;
   _events: Object;
-  _inactive: boolean | null;
+  _inactive: boolean | null; // 不活跃的
   _directInactive: boolean;
   _isMounted: boolean;
   _isDestroyed: boolean;

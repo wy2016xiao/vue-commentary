@@ -50,11 +50,11 @@ export class Observer {
     this.value = value
     this.dep = new Dep()
     this.vmCount = 0
-    // 2.给data定义一个__ob__属性，值就是实例
+    // 2.给data定义一个__ob__属性，值就是Observer实例
     def(value, '__ob__', this)
     // 3.对于数组对象，则循环创建Observer对象
     if (Array.isArray(value)) {
-      if (hasProto) {
+      if (hasProto) { // 如果能使用原型功能
         // 给数组对象的原型链换成自己定义的已被劫持的数组对象原型
         protoAugment(value, arrayMethods)
       } else {
@@ -116,7 +116,7 @@ function copyAugment (target: Object, src: Object, keys: Array<string>) {
 }
 
 /**
- * 尝试创建一个该对象的观察者实例
+ * 尝试创建一个该对象的观察者实例,也就是new Oberser(obj)
  * 如果成功观察，返回一个新的观察者实例
  * 如果已经存在，返回存在的观察者实例（在某些情况下不会添加）
  * 不会添加的场景包括
@@ -194,7 +194,7 @@ export function defineReactive (
   const getter = property && property.get
   const setter = property && property.set
   // 如果已经有setter或者没有getter 并且调用时没有设置值
-  // 证明已经有了该属性，用户应该是想要把该属性设置成响应式
+  // 证明已经有了该属性，调用该方法应该是想要把该属性设置成响应式
   // 给val赋值
   // conputed可能会设置set或者get
   if ((!getter || setter) && arguments.length === 2) {
@@ -208,9 +208,9 @@ export function defineReactive (
     configurable: true,
     get: function reactiveGetter () {
       const value = getter ? getter.call(obj) : val
-      // 依赖收集
+      // 依赖收集,调用watcher的addDep方法
       if (Dep.target) {
-        dep.depend()
+        dep.depend() // target.addDep()
         if (childOb) {
           childOb.dep.depend()
           if (Array.isArray(value)) {

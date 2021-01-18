@@ -2,6 +2,9 @@
  * not type checking this file because flow doesn't play well with
  * dynamically accessing methods on Array prototype
  */
+/**
+ * 该文件主要针对数组的部分可以改变原数组的方法进行重写,让数组能够被观察
+ */
 
 import { def } from '../util/index'
 

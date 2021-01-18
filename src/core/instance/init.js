@@ -38,7 +38,7 @@ export function initMixin (Vue: Class<Component>) {
       mark(startTag)
     }
 
-    // _isVue变量可以避免对象被观察
+    // _isVue变量可以避免Vue实例对象被观察
     vm._isVue = true
 
     /**
@@ -74,11 +74,12 @@ export function initMixin (Vue: Class<Component>) {
       initProxy(vm)
     } else {
       // 生产环境
+      // 渲染函数作用域代理
       // _renderProxy属性指向vm本身
       vm._renderProxy = vm
     }
 
-    // _self保存vm本身
+    // _self保存实例本身
     vm._self = vm
 
     // 初始化vue实例的一系列属性,给到默认属性

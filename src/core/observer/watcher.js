@@ -111,6 +111,7 @@ export default class Watcher {
    */
   get () {
     // 1.将当前的watcher压栈
+    // 这样触发getter时就知道应该收集哪个watcher了
     pushTarget(this)
     let value
     const vm = this.vm

@@ -19,7 +19,7 @@ export default class Dep {
   // 之所以这样单独提出来放在target里面是因为不可能在每一个需要watcher的地方自动出现watcher
   // 可以在这里存到target然后在另外一个地方取出来
   // 省掉了watcher四处访问传递的逻辑
-  static target: ?Watcher; // 当前的watcher
+  static target: ?Watcher; // 当前的watcher 需要被收集的依赖
   id: number; // 属性
   subs: Array<Watcher>;  // watcher类集合
 

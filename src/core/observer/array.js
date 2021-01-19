@@ -40,6 +40,7 @@ methodsToPatch.forEach(function (method) {
         inserted = args.slice(2)
         break
     }
+    // 如果有新加入的数据,对新加入的数据进行观察
     if (inserted) ob.observeArray(inserted)
     // notify change
     ob.dep.notify()

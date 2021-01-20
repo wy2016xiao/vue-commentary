@@ -1,5 +1,7 @@
 /* @flow */
-
+/**
+ * watcher调度器
+ */
 import type Watcher from './watcher'
 import config from '../config'
 import { callHook, activateChildComponent } from '../instance/lifecycle'
@@ -14,12 +16,18 @@ import {
 
 export const MAX_UPDATE_COUNT = 100
 
-const queue: Array<Watcher> = []
+const queue: Array<Watcher> = [] // 等待执行的watcher队列
 const activatedChildren: Array<Component> = []
+/**
+ * queueWatcher队列的id列表,用来检查队列中是否已有watcher
+ */
 let has: { [key: number]: ?true } = {}
 let circular: { [key: number]: number } = {}
 let waiting = false
-let flushing = false
+/**
+ * 队列执行期间flushing为true,队列执行完毕为false
+ */
+let flushing = false 
 let index = 0
 
 /**

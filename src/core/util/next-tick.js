@@ -7,7 +7,7 @@ import { isIE, isIOS, isNative } from './env'
 
 export let isUsingMicroTask = false
 
-const callbacks = []
+const callbacks = [] // nexttick的cb集合
 let pending = false
 
 function flushCallbacks () {
@@ -51,6 +51,9 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
     // microtask queue but the queue isn't being flushed, until the browser
     // needs to do some other work, e.g. handle a timer. Therefore we can
     // "force" the microtask queue to be flushed by adding an empty timer.
+    // 怪异问题解决
+    // 在一些 UIWebViews 中存在很奇怪的问题，即 microtask 没有被刷新
+    // 对于这个问题的解决方案就是让浏览做一些其他的事情比如注册一个 (macro)task 即使这个 (macro)task 什么都不做，这样就能够间接触发 microtask 的刷新。
     if (isIOS) setTimeout(noop)
   }
   isUsingMicroTask = true

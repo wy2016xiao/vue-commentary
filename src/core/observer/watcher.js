@@ -34,26 +34,27 @@ export default class Watcher {
   cb: Function; // 当watcher被通知时,被调用的函数
   id: number; // 批量时的id
   deep: boolean; // 是否需要深度监听
-  user: boolean; // 是否是用户手动调用的this.$watch()
+  user: boolean; // 是开发者自定义的watcher还是内部定义的
   lazy: boolean; // input输入框会由input触发改为onchange触发
   // 也就是时失去焦点时触发
-  sync: boolean; // 更新时是否需要同步执行
+  sync: boolean; // 当数据变化时是否同步求值并执行回调
   dirty: boolean; // 脏值,在异步update数据的时候需要
   active: boolean; // 是否活跃,不活跃的时候也就不需要通知了
   deps: Array<Dep>; // 该watcher对应的维护的dep数组
   newDeps: Array<Dep>; // 该watcher对应的新的dep的缓冲
   depIds: SimpleSet; // 该watcher对应的维护的发布器id
   newDepIds: SimpleSet; // 该watcher对应的新的dep的id的缓冲
-  before: ?Function;
+  before: ?Function; // 相当于watcher的钩子,当数据变化之后，触发更新之前，调用
   getter: Function; // 获取当前'a.b.c'或者传入函数的值,有一个可选参数,一般传入当前实例,代表this.a.b.c
   value: any; // 当前值
 
   constructor (
     vm: Component,
-    expOrFn: string | Function, // 待观察的表达式
-    cb: Function, // 回调函数，更新的时候调用
+    expOrFn: string | Function, // 被观察的数据的求值表达式
+    cb: Function, // 当被观察的表达式的值变化时的回调函数
     options?: ?Object, // 一些类似deep的选项
-    isRenderWatcher?: boolean
+    // 并不是只有state能被观察,实际上该类也被内部使用,比如渲染函数也能被观察
+    isRenderWatcher?: boolean // 用来标识该观察者实例是否是渲染函数的观察者
   ) {
     // 1.初始化变量
     this.vm = vm
@@ -106,7 +107,7 @@ export default class Watcher {
   }
 
   /**
-   * 计算getter的值,重新收集依赖
+   * 求值,重新收集依赖
    * 其实就是获取被watch属性当前的值
    */
   get () {
@@ -220,7 +221,7 @@ export default class Watcher {
         this.value = value
         // 调用cb
         if (this.user) {
-          // 如果是$watch调用的,加个报错
+          // 如果是调用的用户定义的,catch一下
           try {
             this.cb.call(this.vm, value, oldValue)
           } catch (e) {

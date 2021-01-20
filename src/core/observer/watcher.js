@@ -265,6 +265,7 @@ export default class Watcher {
   teardown () {
     if (this.active) {
       if (!this.vm._isBeingDestroyed) {
+        // vm._watchers收集了实例上的所有watcher,先从里面删掉
         remove(this.vm._watchers, this)
       }
       let i = this.deps.length

@@ -14,8 +14,48 @@ import { isNonPhrasingTag } from 'web/compiler/util'
 import { unicodeRegExp } from 'core/util/lang'
 
 // Regular Expressions for parsing tags and attributes
+// 对于双引号情况
+// [
+//   'class="some-class"',
+//   'class',
+//   '=',
+//   'some-class',
+//   undefined,
+//   undefined
+// ]
+// 对于单引号的情况
+// [
+//   "class='some-class'",
+//   'class',
+//   '=',
+//   undefined,
+//   'some-class',
+//   undefined
+// ]
+// 对于没有引号
+// [
+//   'class=some-class',
+//   'class',
+//   '=',
+//   undefined,
+//   undefined,
+//   'some-class'
+// ]
+// 对于单独的属性名
+// [
+//   'disabled',
+//   'disabled',
+//   undefined,
+//   undefined,
+//   undefined,
+//   undefined
+// ]
 const attribute = /^\s*([^\s"'<>\/=]+)(?:\s*(=)\s*(?:"([^"]*)"+|'([^']*)'+|([^\s"'=<>`]+)))?/
+
 const dynamicArgAttribute = /^\s*((?:v-[\w-]+:|@|:|#)\[[^=]+\][^\s"'<>\/=]*)(?:\s*(=)\s*(?:"([^"]*)"+|'([^']*)'+|([^\s"'=<>`]+)))?/
+// 一个典型的XML标签:<k:bug xmlns:k="http://www.xxx.com/xxx"></k:bug>
+// k是前缀 bug是标签名(xml标签名由用户自定义) xmlns为前缀赋予与指定命名空间相关联的限定名称
+// 不包含前缀的XML标签名称
 const ncname = `[a-zA-Z_][\\-\\.0-9_a-zA-Z${unicodeRegExp.source}]*`
 const qnameCapture = `((?:${ncname}\\:)?${ncname})`
 const startTagOpen = new RegExp(`^<${qnameCapture}`)
@@ -88,7 +128,7 @@ export function parseHTML (html, options) {
       // 1."<"字符打头处理逻辑
       if (textEnd === 0) {
         // Comment:
-        // html以注释开头
+        // 如果html以注释开头
         if (comment.test(html)) {
           const commentEnd = html.indexOf('-->')
             // 1.1、处理标准注释,<!--
@@ -98,7 +138,7 @@ export function parseHTML (html, options) {
               // 当设为 true 时，将会保留且渲染模板中的 HTML 注释。默认行为是舍弃它们。
               options.comment(html.substring(4, commentEnd), index, index + commentEnd + 3)
             }
-            // 前进三个字符
+            // 步进三个字符
             // 开始解析下一个节点
             advance(commentEnd + 3)
             continue

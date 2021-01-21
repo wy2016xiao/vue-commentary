@@ -26,6 +26,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
     options?: CompilerOptions,
     vm?: Component
   ): CompiledFunctionResult {
+    // 复制一份options
     options = extend({}, options)
     const warn = options.warn || baseWarn
     delete options.warn
@@ -34,6 +35,8 @@ export function createCompileToFunctionFn (compile: Function): Function {
     if (process.env.NODE_ENV !== 'production') {
       // detect possible CSP restriction
       try {
+        // 这里主要是为了测试能否使用new Function
+        // 严格模式下是不行的
         new Function('return 1')
       } catch (e) {
         if (e.toString().match(/unsafe-eval|CSP/)) {
@@ -48,7 +51,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
       }
     }
 
-    // check cache
+    // 检查是否有缓存, 有缓存直接使用
     const key = options.delimiters
       ? String(options.delimiters) + template
       : template
@@ -56,10 +59,11 @@ export function createCompileToFunctionFn (compile: Function): Function {
       return cache[key]
     }
 
-    // compile
+    // 解析
     const compiled = compile(template, options)
 
     // check compilation errors/tips
+    // 各种提示和警告
     if (process.env.NODE_ENV !== 'production') {
       if (compiled.errors && compiled.errors.length) {
         if (options.outputSourceRange) {
@@ -88,6 +92,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
     }
 
     // turn code into functions
+    // 把compiled的返回值转成函数
     const res = {}
     const fnGenErrors = []
     res.render = createFunction(compiled.render, fnGenErrors)
@@ -99,6 +104,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
     // this should only happen if there is a bug in the compiler itself.
     // mostly for codegen development use
     /* istanbul ignore if */
+    // 错误处理
     if (process.env.NODE_ENV !== 'production') {
       if ((!compiled.errors || !compiled.errors.length) && fnGenErrors.length) {
         warn(

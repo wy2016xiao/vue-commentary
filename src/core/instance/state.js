@@ -278,7 +278,7 @@ function initComputed (vm: Component, computed: Object) {
     // component prototype. We only need to define computed properties defined
     // at instantiation here.
     // 在组件上定义的计算属性如果已经在组件的别的地方存在,则给他报错
-    // 否则绑定到vm对象上
+    // 否则将computed定义的属性绑定到实例对象上
     if (!(key in vm)) {
       defineComputed(vm, key, userDef)
     } else if (process.env.NODE_ENV !== 'production') {
@@ -358,7 +358,6 @@ function createComputedGetter (key) {
         // 如果watcher改变了，刷新watcher
         watcher.evaluate()
       }
-      // TODO: 不太清楚Dep.target是什么
       if (Dep.target) {
         // 将定义的watcher类，加入到发布器dep中，实现依赖收集，当依赖变量发生变化，触发计算属性的重新计算
         watcher.depend()

@@ -23,7 +23,7 @@ export const createCompiler = createCompilerCreator(function baseCompile (
   if (options.optimize !== false) {
     optimize(ast, options)
   }
-  // 3、generate，生成render表达式
+  // 3、generate，用AST生成render表达式
   const code = generate(ast, options)
   return {
     ast,

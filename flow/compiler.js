@@ -169,11 +169,21 @@ declare type ASTNode = ASTElement | ASTText | ASTExpression;
 declare type ASTElement = {
   type: 1;
   tag: string; // 标签名
-  attrsList: Array<ASTAttr>; // 标签属性列表
-  attrsMap: { [key: string]: any }; // 属性和值的hash
+  attrsList: Array<ASTAttr>; // 是一个对象数组，存储着原始的 html 属性名和值。
+  // [
+  //   {
+  //     name: 'v-for',
+  //     value: 'obj of list'
+  //   },
+  //   {
+  //     name: 'class',
+  //     value: 'box'
+  //   }
+  // ]
+  attrsMap: { [key: string]: any }; // attrsMap 是以键值对的方式保存 html 属性名和值的
   rawAttrsMap: { [key: string]: ASTAttr }; // 原始的属性键值对
-  parent: ASTElement | void; // 父节点的ast
-  children: Array<ASTNode>; // 子节点的ast
+  parent: ASTElement | void; // 父节点元素描述对象的引用
+  children: Array<ASTNode>; // 该节点所有子节点的元素描述对象
 
   start?: number;
   end?: number;
@@ -184,61 +194,75 @@ declare type ASTElement = {
   staticRoot?: boolean; // 是否静态根节点
   staticInFor?: boolean; // 是否v-for中的静态节点
   staticProcessed?: boolean; // 
-  hasBindings?: boolean; //
+  hasBindings?: boolean; // 如果模板使用了指令(任何指令 包括v-on v-bind等)会出现该属性
 
   text?: string; // 文本内容
-  attrs?: Array<ASTAttr>; // 
+  // 节点元素描述对象的 attrs 属性也是一个数组，并且也只有当节点类型为 1，即节点为标签的时候，其元素描述对象才会包含这个属性。
+  // 不同之处在于:
+  // attrsList 属性仅用于解析阶段，而 attrs 属性则用于代码生成阶段，甚至运行时阶段。
+  // attrsList 属性所包含的内容作为元素材料被解析器使用，而 attrs 属性所包含的内容在运行时阶段会使用原生 DOM 操作方法 setAttribute 真正将属性设置给 DOM 元素
+  // http://caibaojian.com/vue-design/appendix/ast.html#attrs
+  attrs?: Array<ASTAttr>;
   dynamicAttrs?: Array<ASTAttr>; // 动态attrs
-  props?: Array<ASTAttr>;
-  plain?: boolean;
-  pre?: true;
-  ns?: string; // namespace
+  props?: Array<ASTAttr>; // http://caibaojian.com/vue-design/appendix/ast.html#props
+  plain?: boolean; // 如果为true 该节点的VNodeData将为空 v-pre标签的子标签plain都为true
+  pre?: true; // 是否使用了v-pre v-pre: 跳过这个元素和它的子元素的编译过程.可以用来显示原始 Mustache 标签.
+  ns?: string; // namespace 通常svg和math标签会有
 
-  component?: string; // 组件
-  inlineTemplate?: true;
+  component?: string; // 如果使用了is特性,就会拥有该字段,值为is的值
+  inlineTemplate?: true; // 一个组件使用内联模板 子组件内的内容既可以作为被分发的内容(slot)也可以作为内联模板 当使用了内联模板使会出现该属性
   transitionMode?: string | null;
-  slotName?: ?string;
-  slotTarget?: ?string;
+  slotName?: ?string; // 具名插槽名称 slot标签特有
+  slotTarget?: ?string; // <div slot="slotTarget"></div>
   slotTargetDynamic?: boolean;
-  slotScope?: ?string;
-  scopedSlots?: { [name: string]: ASTElement };
+  slotScope?: ?string; // 插槽作用域 <div slot-scope="slotScope"></div>
+  scopedSlots?: { [name: string]: ASTElement }; // 作用域插槽
 
-  ref?: string;
-  refInFor?: boolean;
+  ref?: string; // ref属性
+  refInFor?: boolean; // 如果一个使用了 ref 特性的标签是使用了 v-for 指令标签的子代节点，则该标签元素描述对象的 checkInFor 属性将会为 true，否则为 false
 
-  if?: string;
+  if?: string; // v-if中的内容
   ifProcessed?: boolean;
-  elseif?: string;
-  else?: true;
-  ifConditions?: ASTIfConditions;
+  elseif?: string; // v-else-if 中的内容
+  else?: true; // v-else 中的内容
+  // 如果一个标签使用 v-if 指令，则该标签的元素描述对象将会拥有 ifConditions 属性，它是一个数组。如果一个标签使用 v-else-if 或 v-else 指令，则该标签不会被添加到其父节点元素描述对象的 children 数组中，而是会被添加到相符的带有 v-if 指令节点的元素描述对象的 ifConditions 数组中。
+  ifConditions?: ASTIfConditions; // 如果一个插槽是作用域插槽,则该插槽节点的元素描述对象不会作为组件的 children 属性存在，而是会被添加到组件元素描述对象的 scopedSlots 属性中
 
-  for?: string;
+  // v-for特有
+  // <div v-for="(obj, key, index) of list"></div>
+  // ast = {
+  //   for: 'list',
+  //   alias: 'obj',
+  //   iterator1: 'key'
+  //   iterator2: 'index'
+  // }
+  for?: string; // obj of list 中的list
   forProcessed?: boolean;
-  key?: string;
+  key?: string; // :key
   alias?: string;
-  iterator1?: string;
+  iterator1?: string; // v-for的第二个参数
   iterator2?: string;
 
-  staticClass?: string;
-  classBinding?: string;
-  staticStyle?: string;
-  styleBinding?: string;
-  events?: ASTElementHandlers;
-  nativeEvents?: ASTElementHandlers;
+  staticClass?: string; // 静态class <div class="a">
+  classBinding?: string; // 绑定的class <div class="{ active: true }"
+  staticStyle?: string; // 静态style
+  styleBinding?: string; // 绑定的style
+  events?: ASTElementHandlers; // v-on事件
+  nativeEvents?: ASTElementHandlers; // 原生事件
 
   transition?: string | true;
   transitionOnAppear?: boolean;
 
-  model?: {
-    value: string;
-    callback: string;
-    expression: string;
+  model?: { // v-model相关内容
+    value: string; // 值
+    callback: string; // 回调
+    expression: string; // 表达式 "'abc'+_s(name)+'def'"
   };
 
-  directives?: Array<ASTDirective>;
+  directives?: Array<ASTDirective>; // 保存所有的指令信息 v-on v-bind除外
 
-  forbidden?: true;
-  once?: true;
+  forbidden?: true; // 是否被禁止使用 如 style标签 没有type属性的script标签 type为'text/javascript'的script标签
+  once?: true; // v-once
   onceProcessed?: boolean;
   wrapData?: (code: string) => string;
   wrapListeners?: (code: string) => string;
@@ -250,11 +274,12 @@ declare type ASTElement = {
   appendAsTree?: boolean;
 };
 
+// 表达式ast
 declare type ASTExpression = {
   type: 2;
-  expression: string;
+  expression: string; // 字面量表达式
   text: string;
-  tokens: Array<string | Object>;
+  tokens: Array<string | Object>; // weex用的
   static?: boolean;
   // 2.4 ssr optimization
   ssrOptimizability?: number;
@@ -262,11 +287,12 @@ declare type ASTExpression = {
   end?: number;
 };
 
+// 文本节点ast
 declare type ASTText = {
   type: 3;
   text: string;
   static?: boolean;
-  isComment?: boolean;
+  isComment?: boolean; // 是否是注释节点
   // 2.4 ssr optimization
   ssrOptimizability?: number;
   start?: number;

@@ -158,6 +158,17 @@ export function getRawBindingAttr (
     el.rawAttrsMap[name]
 }
 
+/**
+ * 获取绑定的attr
+ * 取:name或者v-bind:name中的name
+ *
+ * @date 18/01/2021
+ * @export
+ * @param {ASTElement} el
+ * @param {string} name
+ * @param {boolean} [getStatic]
+ * @return {*}  {?string}
+ */
 export function getBindingAttr (
   el: ASTElement,
   name: string,
@@ -180,12 +191,23 @@ export function getBindingAttr (
 // doesn't get processed by processAttrs.
 // By default it does NOT remove it from the map (attrsMap) because the map is
 // needed during codegen.
+/**
+ *
+ *
+ * @date 18/01/2021
+ * @export
+ * @param {ASTElement} el
+ * @param {string} name
+ * @param {boolean} [removeFromMap]
+ * @return {*}  {?string}
+ */
 export function getAndRemoveAttr (
   el: ASTElement,
   name: string,
   removeFromMap?: boolean
 ): ?string {
   let val
+  // 确定这个attr在attrsMap中存在,name就在attrsList中删除它
   if ((val = el.attrsMap[name]) != null) {
     const list = el.attrsList
     for (let i = 0, l = list.length; i < l; i++) {

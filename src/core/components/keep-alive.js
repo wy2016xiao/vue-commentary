@@ -5,6 +5,7 @@
 import { isRegExp, remove } from 'shared/util'
 import { getFirstComponentChild } from 'core/vdom/helpers/index'
 
+// 这玩意用来缓存vnode
 type VNodeCache = { [key: string]: ?VNode };
 
 /**
@@ -44,6 +45,7 @@ function matches (pattern: string | RegExp | Array<string>, name: string): boole
 
 /**
  * 修剪缓存
+ * 如果传入的filter返回false,那么会销毁这个缓存
  * @date 2020-01-09
  * @param {*} keepAliveInstance
  * @param {Function} filter
@@ -63,7 +65,8 @@ function pruneCache (keepAliveInstance: any, filter: Function) {
 
 
 /**
- *
+ * 销毁缓存中的vnode
+ * 
  * @date 2020-01-09
  * @param {VNodeCache} cache
  * @param {string} key
@@ -94,16 +97,26 @@ export default {
   abstract: true, // 抽象组件,它自身不会渲染一个 DOM 元素，也不会出现在组件的父组件链中。
 
   props: {
-    include: patternTypes,
-    exclude: patternTypes,
-    max: [String, Number]
+    include: patternTypes, // 字符串或正则表达式 只有匹配的组件会被缓存
+    exclude: patternTypes, //  字符串或正则表达式。任何名称匹配的组件都不会被缓存。
+    max: [String, Number] // 最多可以缓存多少组件实例
   },
 
+  /**
+   * 
+   *
+   * @date 18/01/2021
+   */
   created () {
     this.cache = Object.create(null)
     this.keys = []
   },
 
+  /**
+   * 在缓存列表中销毁自己
+   *
+   * @date 18/01/2021
+   */
   destroyed () {
     for (const key in this.cache) {
       pruneCacheEntry(this.cache, key, this.keys)
@@ -133,6 +146,7 @@ export default {
         // excluded
         (exclude && name && matches(exclude, name))
       ) {
+        // 如果不存在在缓存列表中,则直接返回
         return vnode
       }
 

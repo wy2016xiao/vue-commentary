@@ -168,6 +168,7 @@ function initData (vm: Component) {
       vm
     )
   }
+
   // 接下来对data进行名字检查
   const keys = Object.keys(data)
   const props = vm.$options.props
@@ -193,11 +194,13 @@ function initData (vm: Component) {
       )
     } else if (!isReserved(key)) {
       // 判断保留字段
-      // 判断是否以 _ 或 $ 开头，如果是则认为是系统的属性，则不会被代理
+      // 判断是否以 _ 或 $ 开头，如果是则认为是Vue自身的属性，则不会被代理
       // 和props一样，访问this.xx其实是在访问this._data.xx
       proxy(vm, `_data`, key)
     }
   }
+  // 名字检查结束
+
   // 运行 observe 函数建立起 Observer 和钩子函数
   // 后续数据的变化都会触发其watcher对象
   observe(data, true /* asRootData */)
@@ -205,6 +208,7 @@ function initData (vm: Component) {
 
 /**
  * 核心为data.call(vm, vm)
+ * 通过调用 data 选项从而获取数据对象
  * @date 2020-04-21
  * @export
  * @param {Function} data - 用户定义的data
@@ -213,6 +217,8 @@ function initData (vm: Component) {
  */
 export function getData (data: Function, vm: Component): any {
   // 将当前的target置为undefined,暂停一下
+  // 这么做是为了防止使用 props 数据初始化 data 数据时收集冗余的依赖
+  // 也就是说,这样不给参数的调用之后,target为空,也就不会进行依赖收集了
   pushTarget()
   try {
     // 以vm为参数调用data
@@ -272,7 +278,7 @@ function initComputed (vm: Component, computed: Object) {
     // component prototype. We only need to define computed properties defined
     // at instantiation here.
     // 在组件上定义的计算属性如果已经在组件的别的地方存在,则给他报错
-    // 否则绑定到vm对象上
+    // 否则将computed定义的属性绑定到实例对象上
     if (!(key in vm)) {
       defineComputed(vm, key, userDef)
     } else if (process.env.NODE_ENV !== 'production') {
@@ -352,7 +358,6 @@ function createComputedGetter (key) {
         // 如果watcher改变了，刷新watcher
         watcher.evaluate()
       }
-      // TODO: 不太清楚Dep.target是什么
       if (Dep.target) {
         // 将定义的watcher类，加入到发布器dep中，实现依赖收集，当依赖变量发生变化，触发计算属性的重新计算
         watcher.depend()
@@ -482,22 +487,20 @@ function createWatcher (
  * @param {Class<Component>} Vue
  */
 export function stateMixin (Vue: Class<Component>) {
-  // flow somehow has problems with directly declared definition object
-  // when using Object.defineProperty, so we have to procedurally build up
-  // the object here.
-  // 不允许用户对$data $props两个对象设置属性
+  // $data $props其实就是_data _props
   const dataDef = {}
   dataDef.get = function () { return this._data }
   const propsDef = {}
   propsDef.get = function () { return this._props }
+  // 不允许用户对$data $props两个对象进行修改
   if (process.env.NODE_ENV !== 'production') {
     dataDef.set = function () {
       warn(
         'Avoid replacing instance root $data. ' +
         'Use nested data properties instead.',
         this
-      )
-    }
+        )
+      }
     propsDef.set = function () {
       warn(`$props is readonly.`, this)
     }

@@ -425,7 +425,7 @@ function assertObjectType (name: string, value: any, vm: ?Component) {
 }
 
 /**
- * 将用户自定义的options合并到实例
+ * 将用户自定义的options合并,赋值给$options
  *
  * @date 2021-01-04
  * @export

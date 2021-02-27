@@ -96,13 +96,13 @@ export function parse (
   preTransforms = pluckModuleFunction(options.modules, 'preTransformNode')
   postTransforms = pluckModuleFunction(options.modules, 'postTransformNode')
 
-  // 分隔符
+  // 分隔符设置
   delimiters = options.delimiters
 
   const stack = []
-  // 保留空格
+  // 是否保留空格
   const preserveWhitespace = options.preserveWhitespace !== false
-  // 空格设置
+  // 是否保留空格
   const whitespaceOption = options.whitespace
   // 定义AST模型对象
   let root
@@ -113,6 +113,7 @@ export function parse (
 
   /**
    * 报一次错
+   * 免得疯狂报错
    */
   function warnOnce (msg, range) {
     if (!warned) {
@@ -185,7 +186,7 @@ export function parse (
   }
 
   /**
-   * 修剪最后的空白节点
+   * 修剪尾部空白节点
    */
   function trimEndingWhitespace (el) {
     // remove trailing whitespace node
@@ -473,20 +474,32 @@ function processRawAttrs (el) {
   }
 }
 
+/**
+ *
+ *
+ * @date 18/01/2021
+ * @export
+ * @param {ASTElement} element
+ * @param {CompilerOptions} options
+ * @return {*}  
+ */
 export function processElement (
   element: ASTElement,
   options: CompilerOptions
 ) {
+  // 处理attrs中的key
   processKey(element)
 
   // determine whether this is a plain element after
   // removing structural attributes
+  // 在删除结构属性后，确定这是否是普通元素
   element.plain = (
     !element.key &&
     !element.scopedSlots &&
     !element.attrsList.length
   )
 
+  // 处理ref
   processRef(element)
   processSlotContent(element)
   processSlotOutlet(element)
@@ -498,6 +511,12 @@ export function processElement (
   return element
 }
 
+/**
+ * 处理attrs中的key
+ *
+ * @date 18/01/2021
+ * @param {*} el
+ */
 function processKey (el) {
   const exp = getBindingAttr(el, 'key')
   if (exp) {

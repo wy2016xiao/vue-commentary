@@ -17,13 +17,14 @@ const idToTemplate = cached(id => {
   return el && el.innerHTML
 })
 
+// 缓存在src/platforms/web/runtime/index.js中定义的$mount方法
+const mount = Vue.prototype.$mount
 /**
  * 定义$mount
  * 根据el或者template，获取到html的字符串
  * 将字符串转成render函数表达式
  * @returns {Component} 返回vue实例
  */
-const mount = Vue.prototype.$mount
 Vue.prototype.$mount = function (
   el?: string | Element,
   hydrating?: boolean // 服务端渲染相关
@@ -43,7 +44,6 @@ Vue.prototype.$mount = function (
 
   // $options vue实例的初始化选项
   const options = this.$options
-  // resolve template/el and convert to render function
   // 根据template/el，获取html的字符串
   if (!options.render) {
     // 获取template
@@ -85,6 +85,8 @@ Vue.prototype.$mount = function (
       // 如果用户没有定义template，直接获取el
       template = getOuterHTML(el)
     }
+
+    // 取到template 构建render函数
     if (template) {
       /* istanbul ignore if */
       // 性能相关
@@ -96,8 +98,8 @@ Vue.prototype.$mount = function (
         outputSourceRange: process.env.NODE_ENV !== 'production',
         shouldDecodeNewlines,
         shouldDecodeNewlinesForHref,
-        delimiters: options.delimiters,
-        comments: options.comments
+        delimiters: options.delimiters, // 解析字符串模板的占位符 默认值是["{{","}}"]
+        comments: options.comments // 是否保留注释
       }, this)
       options.render = render
       options.staticRenderFns = staticRenderFns
@@ -110,6 +112,12 @@ Vue.prototype.$mount = function (
       }
     }
   }
+
+  // 核心代码
+  // 上面的代码核心工作是提供渲染函数
+  // 或是用户定义的render选项
+  // 或是template或是el
+  // 然后去调用刚刚缓存的旧的$mount方法
   return mount.call(this, el, hydrating)
 }
 

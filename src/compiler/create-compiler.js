@@ -10,6 +10,7 @@ export function createCompilerCreator (baseCompile: Function): Function {
       template: string,
       options?: CompilerOptions
     ): CompiledResult {
+      // 以baseOptions为原型做个对象
       const finalOptions = Object.create(baseOptions)
       const errors = []
       const tips = []
@@ -21,6 +22,7 @@ export function createCompilerCreator (baseCompile: Function): Function {
       if (options) {
         if (process.env.NODE_ENV !== 'production' && options.outputSourceRange) {
           // $flow-disable-line
+          // 主要空格长度 \s匹配看不见的字符
           const leadingSpaceLength = template.match(/^\s*/)[0].length
 
           warn = (msg, range, tip) => {
@@ -36,19 +38,20 @@ export function createCompilerCreator (baseCompile: Function): Function {
             (tip ? tips : errors).push(data)
           }
         }
-        // merge custom modules
+
+        // modules数组合并
         if (options.modules) {
           finalOptions.modules =
             (baseOptions.modules || []).concat(options.modules)
         }
-        // merge custom directives
+        // 指令合并
         if (options.directives) {
           finalOptions.directives = extend(
             Object.create(baseOptions.directives || null),
             options.directives
           )
         }
-        // copy other options
+        // 剩余的选项复制过来
         for (const key in options) {
           if (key !== 'modules' && key !== 'directives') {
             finalOptions[key] = options[key]

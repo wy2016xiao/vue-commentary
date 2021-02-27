@@ -50,11 +50,11 @@ export class Observer {
     this.value = value
     this.dep = new Dep()
     this.vmCount = 0
-    // 2.给data定义一个__ob__属性，值就是实例
+    // 2.给data定义一个__ob__属性，值就是Observer实例
     def(value, '__ob__', this)
     // 3.对于数组对象，则循环创建Observer对象
     if (Array.isArray(value)) {
-      if (hasProto) {
+      if (hasProto) { // 如果能使用原型功能
         // 给数组对象的原型链换成自己定义的已被劫持的数组对象原型
         protoAugment(value, arrayMethods)
       } else {
@@ -116,7 +116,7 @@ function copyAugment (target: Object, src: Object, keys: Array<string>) {
 }
 
 /**
- * 尝试创建一个该对象的观察者实例
+ * 尝试创建一个该对象的观察者实例,也就是new Oberser(obj)
  * 如果成功观察，返回一个新的观察者实例
  * 如果已经存在，返回存在的观察者实例（在某些情况下不会添加）
  * 不会添加的场景包括
@@ -125,7 +125,7 @@ function copyAugment (target: Object, src: Object, keys: Array<string>) {
  * 3.不可扩展
  * 4._isVue属性是真值
  * 
- * 这个函数主要是用来动态返回一个 Observer
+ * 这个函数主要是用来动态返回一个 Observer实例
  * 首先判断value如果不是对象则返回，
  * 然后检测该对象是否已经有 Observer，
  * 有则直接返回，
@@ -151,7 +151,7 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
     shouldObserve && // 可观察
     !isServerRendering() && // 当前不是服务器渲染模式
     (Array.isArray(value) || isPlainObject(value)) && // 是数组或简单对象
-    Object.isExtensible(value) && // 是否可扩展(是否可以添加新属性)
+    Object.isExtensible(value) && // 可扩展(可以添加新属性)
     !value._isVue // 不是vue实例
   ) {
     ob = new Observer(value)
@@ -189,28 +189,29 @@ export function defineReactive (
     return
   }
 
-  // 获取该属性的getter和setter
+  // 获取该属性的getter和setter,缓存一下
   // 一般是没有的，除非已经被框架或者用户定义过
   const getter = property && property.get
   const setter = property && property.set
-  // 如果已经有setter或者没有getter 并且调用时没有设置值
-  // 证明已经有了该属性，用户应该是想要把该属性设置成响应式
+  
   // 给val赋值
   // conputed可能会设置set或者get
+  // 必须没有getter才去取值,不然会意外的触发getter
   if ((!getter || setter) && arguments.length === 2) {
     val = obj[key]
   }
 
-  // 2.如果属性的值也是对象，递归为每个对象创建observe对象
+  // 2.如果属性的值也是对象，递归为每个对象创建Observer对象
   let childOb = !shallow && observe(val)
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,
     get: function reactiveGetter () {
       const value = getter ? getter.call(obj) : val
-      // 依赖收集
+      // 依赖收集,调用watcher的addDep方法
+      // Dep.target表示需要被收集的依赖
       if (Dep.target) {
-        dep.depend()
+        dep.depend() // target.addDep()
         if (childOb) {
           childOb.dep.depend()
           if (Array.isArray(value)) {
@@ -223,7 +224,7 @@ export function defineReactive (
     set: function reactiveSetter (newVal) {
       const value = getter ? getter.call(obj) : val
       /* eslint-disable no-self-compare */
-      // 值没改变或者值被换了
+      // 值没改变或者值被换了 后面的是判断新旧值都是 NaN 情况
       if (newVal === value || (newVal !== newVal && value !== value)) {
         return
       }
@@ -238,8 +239,9 @@ export function defineReactive (
       } else {
         val = newVal
       }
-      // 通知更新
+      // 重新尝试观察
       childOb = !shallow && observe(newVal)
+      // 通知更新
       dep.notify()
     }
   })

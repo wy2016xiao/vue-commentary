@@ -18,8 +18,7 @@ export function initMixin (Vue: Class<Component>) {
     const vm: Component = this
     /**
      * 第一部分
-     * 1.初始化部分属性
-     * _uid _isVue
+     * 1.初始化部分属性 _uid _isVue
      * 2.开启性能检测
      */
     // 每个vue实例都会有一个唯一的uid用来区分不同的vue实例

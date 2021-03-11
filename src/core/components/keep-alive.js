@@ -146,22 +146,24 @@ export default {
         // excluded
         (exclude && name && matches(exclude, name))
       ) {
-        // 如果不存在在缓存列表中,则直接返回
+        // included和excluded过滤
         return vnode
       }
 
       const { cache, keys } = this
       const key: ?string = vnode.key == null
-        // same constructor may get registered as different local components
-        // so cid alone is not enough (#3269)
-        ? componentOptions.Ctor.cid + (componentOptions.tag ? `::${componentOptions.tag}` : '')
-        : vnode.key
+      // same constructor may get registered as different local components
+      // so cid alone is not enough (#3269)
+      ? componentOptions.Ctor.cid + (componentOptions.tag ? `::${componentOptions.tag}` : '')
+      : vnode.key
       if (cache[key]) {
+        // 如果在缓存列表中,则从缓存列表中拿实例
         vnode.componentInstance = cache[key].componentInstance
         // make current key freshest
         remove(keys, key)
         keys.push(key)
       } else {
+        // 不在缓存列表中就缓存一下
         cache[key] = vnode
         keys.push(key)
         // prune oldest entry

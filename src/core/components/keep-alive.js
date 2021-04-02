@@ -45,7 +45,7 @@ function matches (pattern: string | RegExp | Array<string>, name: string): boole
 
 /**
  * 修剪缓存
- * 如果传入的filter返回false,那么会销毁这个缓存
+ * 如果传入的filter返回false,那么会销毁filter过滤出的这个缓存实例
  * @date 2020-01-09
  * @param {*} keepAliveInstance
  * @param {Function} filter
@@ -109,11 +109,11 @@ export default {
    */
   created () {
     this.cache = Object.create(null)
-    this.keys = []
+    this.keys = [] // 用来做LRU
   },
 
   /**
-   * 在缓存列表中销毁自己
+   * 销毁所有缓存组件
    *
    * @date 18/01/2021
    */
@@ -146,7 +146,10 @@ export default {
         // excluded
         (exclude && name && matches(exclude, name))
       ) {
-        // included和excluded过滤
+        // 设置了included但不在included
+        // 或设置了exclude且在excluded中
+        // 直接返回vnode
+        // 即不会被缓存起来
         return vnode
       }
 
@@ -160,6 +163,7 @@ export default {
         // 如果在缓存列表中,则从缓存列表中拿实例
         vnode.componentInstance = cache[key].componentInstance
         // make current key freshest
+        // LRU
         remove(keys, key)
         keys.push(key)
       } else {
@@ -167,6 +171,7 @@ export default {
         cache[key] = vnode
         keys.push(key)
         // prune oldest entry
+        // LRU
         if (this.max && keys.length > parseInt(this.max)) {
           pruneCacheEntry(cache, keys[0], keys, this._vnode)
         }

@@ -47,11 +47,10 @@ export function setActiveInstance(vm: Component) {
 export function initLifecycle (vm: Component) {
   const options = vm.$options
 
-  // locate first non-abstract parent
-  // 定位到第一个非抽象组件
-  // 抽象组件：自身不会渲染一个 DOM 元素，也不会出现在父组件链中
   let parent = options.parent
   if (parent && !options.abstract) {
+    // 如果有父组件且自身不是抽象组件（抽象组件就是不渲染出真实DOM的组件，如keep-alive组件）
+    // 抽象组件：自身不会渲染一个 DOM 元素，也不会出现在父组件链中
     while (parent.$options.abstract && parent.$parent) {
       parent = parent.$parent
     }

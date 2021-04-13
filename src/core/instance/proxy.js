@@ -98,7 +98,6 @@ if (process.env.NODE_ENV !== 'production') {
      */
     get (target, key) {
       // 判断target是否有key属性
-      // key in target   牛逼的判断方式
       // 不然的话可以使用taerget[key]
       // 但这样需要判断undefined等特殊情况
       if (typeof key === 'string' && !(key in target)) {
@@ -115,6 +114,11 @@ if (process.env.NODE_ENV !== 'production') {
     }
   }
 
+  /**
+   * 如果是能用proxy，就用proxy把vm代理一下
+   * 这样就能对用户访问vm上的属性时进行一些操作
+   * 主要是进行key的校验
+   */
   initProxy = function initProxy (vm) {
     // 决定使用什么方式去定义_renderProxy属性
     // 如果是ES6就使用Proxy

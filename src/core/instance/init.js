@@ -71,7 +71,7 @@ export function initMixin (Vue: Class<Component>) {
     if (process.env.NODE_ENV !== 'production') {
       // 开发环境
       // 代理功能初始化，设置vm._renderProxy
-      // 该功能其实主要是用来做一个非法访问属性的警告
+      // 该功能其实主要是用来做一个非法访问属性的警告（形如this.a的属性访问）
       initProxy(vm)
     } else {
       // 生产环境

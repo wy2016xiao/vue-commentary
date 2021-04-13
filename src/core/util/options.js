@@ -310,10 +310,14 @@ export function validateComponentName (name: string) {
  * 确保最终能把props格式化成统一的格式，方便框架使用
  * 包括名字转驼峰
  * 全部转成严谨的对象形式
- * myString: {
- *   type: String,
- *   default: '123'
- * }
+ * {propname: {
+ *   type: Number,
+ *   default: 0,
+ *   required: true,
+ *   validator: function (value) {
+ *     return value >= 0
+ *   }
+ * }}
  * （使用时可传数组或对象）
  */
 function normalizeProps (options: Object, vm: ?Component) {
@@ -322,13 +326,14 @@ function normalizeProps (options: Object, vm: ?Component) {
   const res = {}
   let i, val, name
   if (Array.isArray(props)) {
+    // 形如props: ['propname', 'propname']的写法
     // 如果是数组形式，默认type为null
     // 先把值转成驼峰
     i = props.length
     while (i--) {
       val = props[i]
       if (typeof val === 'string') {
-        // 转驼峰
+        // 连字符转驼峰
         name = camelize(val)
         // 给加上为null的type
         res[name] = { type: null }
@@ -337,6 +342,18 @@ function normalizeProps (options: Object, vm: ?Component) {
       }
     }
   } else if (isPlainObject(props)) {
+    // 除了数组，就是简单对象的形式
+    // 但简单对象也有两种写法
+    // 但这里不会做任何校验，默认你写的都是对的
+    // {propname: Number}
+    // {propname: {
+    //   type: Number,
+    //   default: 0,
+    //   required: true,
+    //   validator: function (value) {
+    //     return value >= 0
+    //   }
+    // }}
     for (const key in props) {
       val = props[key]
       name = camelize(key)
@@ -356,11 +373,12 @@ function normalizeProps (options: Object, vm: ?Component) {
 
 /**
  * 确保最终能把inject格式化成统一的格式，方便框架使用
- * foo: {
- *   from: 'bar',
- *   default: 'foo'
+ * foo: { // 本地使用的key
+ *   from: 'bar', // provide中的key
+ *   default: () => [1,2,3] // 默认值，引用对象需要使用函数返回
  * }
  */
+// CONFUSING: 可能正是因为无法方便地追溯变量的改动，所以特意将inject做成了非响应式，不让你改
 function normalizeInject (options: Object, vm: ?Component) {
   const inject = options.inject
   if (!inject) return
@@ -397,8 +415,9 @@ function normalizeInject (options: Object, vm: ?Component) {
 }
 
 /**
- * 把directive中使用函数简写形式绑定的directive转成标准格式
- * 标准格式：{ bind: def, update: def }
+ * 只做一件事情，把directive中使用函数简写形式绑定的directive转成标准格式
+ * 如果是使用简写形式的指令，自动绑定到bind和update钩子
+ * 标准格式：{ hook: callback, hook: callback }
  * 函数简写参考下方
  * https://cn.vuejs.org/v2/guide/custom-directive.html#%E5%87%BD%E6%95%B0%E7%AE%80%E5%86%99
  */
@@ -426,6 +445,9 @@ function assertObjectType (name: string, value: any, vm: ?Component) {
 
 /**
  * 将用户自定义的options与祖先、实例默认options合并,赋值给$options
+ * 1.选项规整：props inject directives
+ * 2.如果是新实例，进行mixins和extends的融合处理
+ * 3.使用不同的合并策略合并两个选项options
  *
  * @date 2021-01-04
  * @export
@@ -436,7 +458,7 @@ function assertObjectType (name: string, value: any, vm: ?Component) {
  */
 export function mergeOptions (
   parent: Object, // resolveConstructorOptions返回的值(Vue的构造函数的options)，框架自带的options
-  child: Object, // new Vue时传入的数组对象(自定义的options)
+  child: Object, // new Vue时传入的数组对象(自定义的options) 也有可能就是vue实例本身
   vm?: Component // Vue对象本身
 ): Object {
   if (process.env.NODE_ENV !== 'production') {
@@ -448,25 +470,31 @@ export function mergeOptions (
   if (typeof child === 'function') {
     // 如果传入的类型是function，则取其options
     // 如果是function证明是vue实例(兼容一下，免得传错)
+    // 比如有用到extends选项，那么就会直接传入extends
     child = child.options
   }
 
-  // 格式规整，格式化几个选项
-  // 只格式化child是因为child是用户写的，用户在开发的时候会有多种写法选择
+  // 变量格式规整，格式化几个选项
+  // 只格式化child是因为child是用户写的，用户在开发的时候会有多种写法选择，将其统一
+  // 而parent要么是内置的，要么是已经经过格式化的
   normalizeProps(child, vm)
   normalizeInject(child, vm)
   normalizeDirectives(child)
 
   // _base属性在initGlobalAPI的时候被添加，是个指向本身的指针
-  // 只有初始化的Vue实例以及已经被执行过mergeOptions方法的vue实例有这个属性
+  // 只有初始化过的Vue实例以及已经被执行过mergeOptions方法的vue实例有这个属性
+  // 如果没有，会对extends和mixins选项进行操作
   // 已经执行过mergeOptions方法就不需要在做这些融合
   if (!child._base) {
     if (child.extends) {
       // 把extends定义的vue实例合并进parent
+      // 其实很疑惑为什么不传child.extends.options
+      // 是需要checkComponents吗
       parent = mergeOptions(parent, child.extends, vm)
     }
     if (child.mixins) {
       // 把mixins定义的vue实例合并进parent
+      // mixin和extends的区别在于，mixin接收一个数组
       for (let i = 0, l = child.mixins.length; i < l; i++) {
         parent = mergeOptions(parent, child.mixins[i], vm)
       }
@@ -476,6 +504,7 @@ export function mergeOptions (
   const options = {}
   let key
   for (key in parent) {
+    // parent和child的选项合并到options中
     mergeField(key)
   }
   for (key in child) {
@@ -489,7 +518,7 @@ export function mergeOptions (
    * 默认策略为如果有就覆盖替换
    */
   function mergeField (key) {
-    const strat = strats[key] || defaultStrat
+    const strat = strats[key] || defaultStrat // 如果找到策略就用，没有找到就覆盖替换
     options[key] = strat(parent[key], child[key], vm, key)
   }
   return options

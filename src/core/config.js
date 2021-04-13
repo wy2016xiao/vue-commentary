@@ -39,6 +39,8 @@ export default ({
   /**
    * Option merge strategies (used in core/util/options)
    * 配置合并策略，用于 core/util/options
+   * 这个可以在初始化实例（new vue()）之前手动进行配置，对选项的合并进行自定义
+   * https://cn.vuejs.org/v2/guide/mixins.html#%E8%87%AA%E5%AE%9A%E4%B9%89%E9%80%89%E9%A1%B9%E5%90%88%E5%B9%B6%E7%AD%96%E7%95%A5
    */
   // $flow-disable-line
   optionMergeStrategies: Object.create(null),

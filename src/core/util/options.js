@@ -425,7 +425,7 @@ function assertObjectType (name: string, value: any, vm: ?Component) {
 }
 
 /**
- * 将用户自定义的options合并,赋值给$options
+ * 将用户自定义的options与祖先、实例默认options合并,赋值给$options
  *
  * @date 2021-01-04
  * @export
@@ -466,7 +466,7 @@ export function mergeOptions (
       parent = mergeOptions(parent, child.extends, vm)
     }
     if (child.mixins) {
-      // // 把mixins定义的vue实例合并进parent
+      // 把mixins定义的vue实例合并进parent
       for (let i = 0, l = child.mixins.length; i < l; i++) {
         parent = mergeOptions(parent, child.mixins[i], vm)
       }

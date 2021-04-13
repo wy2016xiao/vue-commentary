@@ -53,9 +53,11 @@ export function initMixin (Vue: Class<Component>) {
       initInternalComponent(vm, options)
     } else {
       // 如果是顶层实例则设置它的options
-      // 对options进行合并，vue会将相关的属性和方法都统一放到vm.$options中，为后续的调用做准备工作。vm.$option的属性来自两个方面，一个是Vue的构造函数(vm.constructor)预先定义的，一个是new Vue时传入的入参对象
+      // 对options进行合并，vue会将相关的属性和方法都统一放到vm.$options中，为后续的调用做准备工作。
+      // vm.$option的属性来自两个方面，一个是Vue的构造函数(vm.constructor)预先定义的
+      // 一个是new Vue时传入的入参对象
       vm.$options = mergeOptions(
-        resolveConstructorOptions(vm.constructor),
+        resolveConstructorOptions(vm.constructor), // 如果通过Vue.extend创造，则这一步会取出祖先的options
         options || {},
         vm
       )
@@ -133,7 +135,8 @@ export function initMixin (Vue: Class<Component>) {
  */
 export function initInternalComponent (vm: Component, options: InternalComponentOptions) {
   // 取Vue构造函数的options属性给实例的$options属性
-  // CONFUSING: vm.constructor.options是哪里来的
+  // 这里的vm.comstructor.options在src/core/global-api/index.js中初始化
+  // 部分options选项在src/platforms/weex/runtime/index.js中被扩展
   const opts = vm.$options = Object.create(vm.constructor.options)
   // doing this because it's faster than dynamic enumeration.
   const parentVnode = options._parentVnode
@@ -155,22 +158,22 @@ export function initInternalComponent (vm: Component, options: InternalComponent
 
 /**
  * 一个递归函数
- * 返回构造函数的options
+ * 返回祖先的的options
  * @date 2020-01-13
  * @export
  * @param {Class<Component>} Ctor
  * @returns 
  */
 export function resolveConstructorOptions (Ctor: Class<Component>) {
-  // 这里的options即Vue.options
+  // 这里的options即Vue.options,在src/core/global-api/index.js中初始化
+  // 其中部分options选项在src/platforms/weex/runtime/index.js中被扩展
   let options = Ctor.options
-  // 用Vue.extend构造子类时，就会添加一个super属性
+  // 用户用Vue.extend构造子类时，就会添加一个super属性
   if (Ctor.super) {
     // 如果有继承
     // 先取祖先的options为superOptions
     const superOptions = resolveConstructorOptions(Ctor.super)
     // 对继承的实例的选项做一个缓存
-    // CONFUSING: 这里祖先的options和自身的superOptions为什么会不同?
     const cachedSuperOptions = Ctor.superOptions
     if (superOptions !== cachedSuperOptions) {
       // super option changed,

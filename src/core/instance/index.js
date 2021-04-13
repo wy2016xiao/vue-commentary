@@ -6,12 +6,12 @@ import { lifecycleMixin } from './lifecycle'
 import { warn } from '../util/index'
 
 /**
- * 生命的起源,定义Vue构造函数
+ * 万物起源,定义Vue构造函数
  */
 function Vue (options) {
   if (process.env.NODE_ENV !== 'production' && // 非生产环境
     !(this instanceof Vue) // 当前调用不是使用new命令
-    // TIP: 这里涉及一个小知识点,this instanceof XXX可以判断是否使用new调用
+    // 这里涉及一个小知识点,this instanceof XXX可以判断是否使用new调用
   ) {
     /**
      * 首先，提示是非生产环境才有的

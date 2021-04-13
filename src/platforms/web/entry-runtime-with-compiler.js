@@ -17,7 +17,7 @@ const idToTemplate = cached(id => {
   return el && el.innerHTML
 })
 
-// 缓存在src/platforms/web/runtime/index.js中定义的$mount方法
+// 将在src/platforms/web/runtime/index.js中定义的$mount方法缓存起来
 const mount = Vue.prototype.$mount
 /**
  * 定义$mount

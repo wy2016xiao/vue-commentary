@@ -13,11 +13,14 @@ export function resolveSlots (
     return {}
   }
   const slots = {}
+  // 把子节点拿出来循环
   for (let i = 0, l = children.length; i < l; i++) {
     const child = children[i]
     const data = child.data
     // remove slot attribute if the node is resolved as a Vue slot node
     if (data && data.attrs && data.attrs.slot) {
+      // 如果是具名插槽，先删掉属性
+      // 比如：<template v-slot=header>
       delete data.attrs.slot
     }
     // named slots should only be respected if the vnode was rendered in the

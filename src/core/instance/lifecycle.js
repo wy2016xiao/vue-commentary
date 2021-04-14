@@ -39,7 +39,8 @@ export function setActiveInstance(vm: Component) {
 
 /**
  * 初始化生命周期
- * 初始化一些变量 $parent $root $children _watcher _inactive
+ * 1.找到最近的一个非抽象父组件，在他的$children数组中添加自己
+ * 2.初始化一些变量 $parent $root $children $refs _watcher _inactive _directInactive _isMounted _isDestroyed _isBeingDestroyed
  * @date 2020-01-13
  * @export
  * @param {Component} vm
@@ -54,7 +55,7 @@ export function initLifecycle (vm: Component) {
     while (parent.$options.abstract && parent.$parent) {
       parent = parent.$parent
     }
-    // parent不是为undefined，并且标记为非抽象，通过while循环父组件链，找出第一个非抽象的组件（最顶层，第一代祖宗），并赋值为parent，为该parent的子组件数据添加vm对象，形成一个环形链表
+    // 通过while循环父组件链，找出最近的一个非抽象的组件，并赋值为parent，为该parent的子组件数据添加vm对象，形成一个环形链表
     // 这个链表是非抽象组件链表，忽略了抽象组件
     parent.$children.push(vm)
   }

@@ -22,9 +22,9 @@ import { isUpdatingChildComponent } from './lifecycle'
  * vm._c与vm.$createElement分别是对template和render函数处理的方法
  */
 export function initRender (vm: Component) {
-  // 保存有node树的根节点
+  // 保存node树的根节点
   vm._vnode = null // the root of the child tree
-  // v-once树的缓存
+  // v-once树的缓存,只渲染一次
   vm._staticTrees = null // v-once cached trees
   const options = vm.$options
   // CONFUSING: 为什么vm.$vnode取的是_parentVnode

@@ -3,7 +3,7 @@ import { initGlobalAPI } from './global-api/index'
 import { isServerRendering } from 'core/util/env'
 import { FunctionalRenderContext } from 'core/vdom/create-functional-component'
 
-//初始化全局API，如Vue.util,Vue.set,Vue.use等
+//初始化全局API，如Vue.util,Vue.set,Vue.delete,Vue.use,Vue.observable,Vue.options等
 initGlobalAPI(Vue)
 
 // 服务器渲染标识

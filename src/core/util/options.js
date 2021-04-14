@@ -446,8 +446,8 @@ function assertObjectType (name: string, value: any, vm: ?Component) {
 /**
  * 将用户自定义的options与祖先、实例默认options合并,赋值给$options
  * 1.选项规整：props inject directives
- * 2.如果是新实例，进行mixins和extends的融合处理
- * 3.使用不同的合并策略合并两个选项options
+ * 2.如果是新实例，进行mixins和extends选项的处理
+ * 3.使用不同的合并策略合并两个options
  *
  * @date 2021-01-04
  * @export

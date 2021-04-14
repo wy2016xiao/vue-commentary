@@ -70,7 +70,7 @@ export function updateListeners (
     // 循环事件名称
     def = cur = on[name]
     old = oldOn[name]
-    // 格式化event名称
+    // 格式化event名称,去掉& ~ ！符号
     event = normalizeEvent(name)
     /* istanbul ignore if */
     // 对weex框架的支持，暂不研究
@@ -85,9 +85,9 @@ export function updateListeners (
         vm
       )
     } else if (isUndef(old)) {
-      // 判断old对象是否为undefined,当old不存在时执行
+      // 如果同名老事件为undefined
       if (isUndef(cur.fns)) {
-        // 判断新对象的fns对象是否为undefined
+        // 如果新事件的fns对象为undefined
         // 创建事件函数调用器
         cur = on[name] = createFnInvoker(cur, vm)
       }

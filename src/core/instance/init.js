@@ -12,7 +12,14 @@ import { extend, mergeOptions, formatComponentName } from '../util/index'
 
 let uid = 0
 
-// 给实例加上了_init方法，以供实例化时（new Vue()）调用
+/**
+ * 给实例加上了_init方法，以供实例化时（new Vue()）调用
+ * _init主要做了四件事情
+ * 1.初始化 _uid _isVue
+ * 2.合并相关options
+ * 3.初始化相关功能以及钩子调用 initLifecycle initEvents initRender callHook('beforecreate') initInjections initState initProvide callHook('created')
+ * 4.挂载vue vm.$mount(vm.$options.el)
+ */
 export function initMixin (Vue: Class<Component>) {
   Vue.prototype._init = function (options?: Object) {
     const vm: Component = this
@@ -84,8 +91,8 @@ export function initMixin (Vue: Class<Component>) {
     vm._self = vm
 
     // 初始化vue实例的一系列属性,给到默认属性
-    // $parent $root $children $refs _watcher _inactive _directInactive _isMounted 
-    // _isDestroyed _isBeingDestroyed
+    // 1.找到最近的一个非抽象父组件，在他的$children数组中添加自己
+    // 2.初始化一些变量 $parent $root $children $refs _watcher _inactive _directInactive _isMounted _isDestroyed _isBeingDestroyed
     initLifecycle(vm)
     // 初始化_events _hasHookEvent变量
     // 存储父组件绑定的当前子组件的事件，保存到vm._events。

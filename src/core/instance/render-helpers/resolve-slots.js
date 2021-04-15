@@ -20,6 +20,7 @@ export function resolveSlots (
     // remove slot attribute if the node is resolved as a Vue slot node
     if (data && data.attrs && data.attrs.slot) {
       // 如果是具名插槽，先删掉属性
+      // CONFUSING: 删掉怎么识别slot插在哪儿？
       // 比如：<template v-slot=header>
       delete data.attrs.slot
     }
